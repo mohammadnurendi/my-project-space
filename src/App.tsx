@@ -14,6 +14,8 @@ import Tim from "./pages/Tim";
 import Login from "./pages/Login";
 import Dokumen from "./pages/Dokumen";
 import Admin from "./pages/Admin";
+import AdminDokumen from "./pages/AdminDokumen";
+import AdminAkun from "./pages/AdminAkun";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +55,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRole="admin">
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dokumen"
+              element={
+                <ProtectedRoute allowedRole="admin">
+                  <AdminDokumen />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/akun"
+              element={
+                <ProtectedRoute allowedRole="admin">
+                  <AdminAkun />
                 </ProtectedRoute>
               }
             />
