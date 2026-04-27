@@ -1,35 +1,46 @@
-import { useEffect, useRef, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
-import { ChevronDown, Menu, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { LogIn, LogOut, Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const profilItems = [
-  { label: "Sejarah", path: "/sejarah" },
-  { label: "Visi & Misi", path: "/visi-misi" },
-  { label: "Road Map", path: "/road-map" },
-  { label: "Tim LPM Itenas", path: "/tim" },
-];
+import { useAuth } from "@/context/AuthContext";
 
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const { isAuthenticated, userRole, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
-    const onClick = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setDropdownOpen(false);
-      }
-    };
     window.addEventListener("scroll", onScroll);
-    document.addEventListener("click", onClick);
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("click", onClick);
-    };
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const handleLogout = () => {
+    logout();
+    setMobileOpen(false);
+    navigate("/", { replace: true });
+  };
+
+  const handleDokumenClick = () => {
+    setMobileOpen(false);
+    if (!isAuthenticated) {
+      navigate("/login");
+    } else if (userRole === "admin") {
+      navigate("/admin");
+    } else {
+      navigate("/dokumen");
+    }
+  };
+
+  const dokumenLink = (
+    <button
+      onClick={handleDokumenClick}
+      className="px-4 py-2 text-sm font-medium rounded-lg text-foreground/80 hover:text-primary hover:bg-accent transition-all duration-200"
+    >
+      Dokumen
+    </button>
+  );
 
   return (
     <nav
@@ -70,55 +81,28 @@ const Navbar = () => {
               Beranda
             </NavLink>
 
-            {/* Profil dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setDropdownOpen((v) => !v)}
-                className={cn(
-                  "flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-lg hover:text-primary hover:bg-accent transition-all duration-200",
-                  dropdownOpen ? "text-primary bg-accent" : "text-foreground/80"
-                )}
-              >
-                Profil
-                <ChevronDown
-                  className={cn(
-                    "w-4 h-4 transition-transform duration-200",
-                    dropdownOpen && "rotate-180"
-                  )}
-                />
-              </button>
-
-              {dropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-48 bg-card rounded-xl shadow-xl border border-border py-1 overflow-hidden animate-fade-in">
-                  {profilItems.map((item) => (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground/80 hover:bg-accent hover:text-primary transition-colors duration-150"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <a
-              href="#"
-              className="px-4 py-2 text-sm font-medium text-foreground/80 rounded-lg hover:text-primary hover:bg-accent transition-all duration-200"
-            >
-              Dokumen
-            </a>
+            {dokumenLink}
           </div>
 
-          {/* Masuk Button */}
+          {/* Auth button (desktop) */}
           <div className="hidden md:flex items-center gap-3">
-            <button className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 active:scale-95">
-              <User className="w-4 h-4" />
-              Masuk
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg active:scale-95"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-2 bg-primary hover:bg-primary-dark text-primary-foreground px-5 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-primary/30 active:scale-95"
+              >
+                <LogIn className="w-4 h-4" />
+                Masuk
+              </button>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -142,32 +126,33 @@ const Navbar = () => {
           >
             Beranda
           </Link>
-          <div className="pt-1 pb-1">
-            <p className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-              Profil
-            </p>
-            {profilItems.map((item) => (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2 rounded-lg text-sm text-foreground/70 hover:bg-accent hover:text-primary pl-6"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-          <a
-            href="#"
-            className="block px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-accent hover:text-primary"
+          <button
+            onClick={handleDokumenClick}
+            className="block w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-foreground/80 hover:bg-accent hover:text-primary"
           >
             Dokumen
-          </a>
+          </button>
           <div className="pt-2">
-            <button className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-semibold">
-              <User className="w-4 h-4" />
-              Masuk
-            </button>
+            {isAuthenticated ? (
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center justify-center gap-2 bg-foreground text-background px-5 py-2.5 rounded-full text-sm font-semibold"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setMobileOpen(false);
+                  navigate("/login");
+                }}
+                className="w-full flex items-center justify-center gap-2 bg-primary text-primary-foreground px-5 py-2.5 rounded-full text-sm font-semibold"
+              >
+                <LogIn className="w-4 h-4" />
+                Masuk
+              </button>
+            )}
           </div>
         </div>
       )}
