@@ -36,12 +36,7 @@ const Navbar = () => {
   const dokumenLink = (
     <button
       onClick={handleDokumenClick}
-      className={({ isActive }: { isActive?: boolean } = {}) =>
-        cn(
-          "px-4 py-2 text-sm font-medium rounded-lg hover:text-primary hover:bg-accent transition-all duration-200",
-          "text-foreground/80"
-        )
-      }
+      className="px-4 py-2 text-sm font-medium rounded-lg text-foreground/80 hover:text-primary hover:bg-accent transition-all duration-200"
     >
       Dokumen
     </button>
