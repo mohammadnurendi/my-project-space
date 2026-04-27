@@ -8,39 +8,41 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 13% 18%;
+    /* Warm neutral palette — selaras dengan oranye ITENAS */
+    --background: 30 25% 99%;
+    --foreground: 24 14% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 18%;
+    --card-foreground: 24 14% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 18%;
+    --popover-foreground: 24 14% 14%;
 
-    /* LPM brand orange #E8600A */
+    /* LPM brand orange #E8600A — solid, no gradient */
     --primary: 22 91% 47%;
     --primary-foreground: 0 0% 100%;
     --primary-light: 25 95% 53%;
     --primary-dark: 22 91% 40%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47% 11%;
+    /* Warm secondary surfaces */
+    --secondary: 30 20% 96%;
+    --secondary-foreground: 24 14% 18%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 30 18% 95%;
+    --muted-foreground: 25 8% 42%;
 
-    --accent: 30 100% 95%;
-    --accent-foreground: 22 91% 40%;
+    --accent: 28 80% 95%;
+    --accent-foreground: 22 91% 38%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
+    --border: 28 18% 90%;
+    --input: 28 18% 90%;
     --ring: 22 91% 47%;
 
-    /* Surfaces */
-    --surface: 36 33% 97%;
+    /* Surfaces — warm off-white */
+    --surface: 30 30% 97%;
 
     --radius: 0.75rem;
 
