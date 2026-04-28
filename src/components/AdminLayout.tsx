@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Home, BookOpen, User, Search, LogOut, Menu, X } from "lucide-react";
+import { Home, BookOpen, User, Search, LogOut, Menu, X, Newspaper } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,7 @@ interface AdminLayoutProps {
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: Home, end: true },
   { to: "/admin/dokumen", label: "Dokumen", icon: BookOpen },
+  { to: "/admin/berita", label: "Berita", icon: Newspaper },
   { to: "/admin/akun", label: "Akun", icon: User },
 ];
 

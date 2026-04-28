@@ -12,9 +12,12 @@ import VisiMisi from "./pages/VisiMisi";
 import RoadMap from "./pages/RoadMap";
 import Tim from "./pages/Tim";
 import Login from "./pages/Login";
+import Berita from "./pages/Berita";
+import BeritaDetail from "./pages/BeritaDetail";
 import Dokumen from "./pages/Dokumen";
 import Admin from "./pages/Admin";
 import AdminDokumen from "./pages/AdminDokumen";
+import AdminBerita from "./pages/AdminBerita";
 import AdminAkun from "./pages/AdminAkun";
 import NotFound from "./pages/NotFound";
 
@@ -34,12 +37,12 @@ const App = () => (
               <Route path="/visi-misi" element={<VisiMisi />} />
               <Route path="/road-map" element={<RoadMap />} />
               <Route path="/tim" element={<Tim />} />
+              <Route path="/berita" element={<Berita />} />
+              <Route path="/berita/:id" element={<BeritaDetail />} />
             </Route>
 
-            {/* Standalone (no shared Layout) */}
             <Route path="/login" element={<Login />} />
 
-            {/* Protected: user only */}
             <Route
               path="/dokumen"
               element={
@@ -48,8 +51,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
-            {/* Protected: admin only */}
             <Route
               path="/admin"
               element={
@@ -67,6 +68,14 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/berita"
+              element={
+                <ProtectedRoute allowedRole="admin">
+                  <AdminBerita />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/akun"
               element={
                 <ProtectedRoute allowedRole="admin">
@@ -74,8 +83,6 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

@@ -26,13 +26,11 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setMobileOpen(false);
     setProfileOpen(false);
   }, [location.pathname]);
 
-  // Close profile dropdown when clicking outside
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
@@ -49,7 +47,6 @@ const Navbar = () => {
     navigate("/", { replace: true });
   };
 
-  // Klik "Dokumen": jika belum login → /login, jika admin → /admin, jika user → /dokumen
   const handleDokumenClick = () => {
     setMobileOpen(false);
     if (!isAuthenticated) {
@@ -135,6 +132,19 @@ const Navbar = () => {
                 </div>
               )}
             </div>
+
+            {/* ── Berita (public) ── */}
+            <NavLink
+              to="/berita"
+              className={({ isActive }) =>
+                cn(
+                  "px-4 py-2 text-sm font-medium rounded-lg hover:text-primary hover:bg-accent transition-all duration-200",
+                  isActive ? "text-primary" : "text-foreground/80"
+                )
+              }
+            >
+              Berita
+            </NavLink>
 
             <button
               onClick={handleDokumenClick}
@@ -238,6 +248,23 @@ const Navbar = () => {
               {link.label}
             </NavLink>
           ))}
+
+          <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Informasi
+          </div>
+
+          {/* ── Berita mobile ── */}
+          <NavLink
+            to="/berita"
+            className={({ isActive }) =>
+              cn(
+                "block px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-accent hover:text-primary transition-colors",
+                isActive ? "text-primary bg-accent/50" : "text-foreground/80"
+              )
+            }
+          >
+            Berita
+          </NavLink>
 
           <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Akses
