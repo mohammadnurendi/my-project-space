@@ -97,6 +97,7 @@ function RelatedCard({ berita }: { berita: BeritaItem }) {
 const BeritaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { list: seedBerita } = useBeritaStore();
 
   const berita = seedBerita.find((b) => b.id === id);
   const related = seedBerita.filter((b) => b.id !== id).slice(0, 4);
