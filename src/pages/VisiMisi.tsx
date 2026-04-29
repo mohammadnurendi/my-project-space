@@ -1,18 +1,10 @@
 import HeroSection from "@/components/HeroSection";
 import { Eye, ClipboardList, Check, BarChart3 } from "lucide-react";
-
-const misiList = [
-  "Mengembangkan dokumen Sistem Penjaminan Mutu Internal yang relevan dengan tuntutan nasional secara konsisten dan berkesinambungan",
-  "Mendorong terwujudnya Sistem Penjaminan Mutu Internal sebagai budaya pada setiap aras di Itenas",
-];
-
-const sasaranList = [
-  "Tersusunnya dokumen SPMI berupa standar, manual, dan formulir : 100 standar",
-  "Terlaksananya Audit Mutu Internal (AMI) pada semua unit kerja secara berkelanjutan",
-  "Terpenuhinya standar pelayanan mahasiswa pada 20 laboratorium dan studio",
-];
+import { useVisiMisiStore } from "@/data/profilStore";
 
 const VisiMisi = () => {
+  const { data } = useVisiMisiStore();
+
   return (
     <div>
       <HeroSection
@@ -33,7 +25,7 @@ const VisiMisi = () => {
             </h2>
           </div>
 
-          {/* Visi Card */}
+          {/* Visi */}
           <div className="mb-8 animate-fade-up relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-light p-1 shadow-xl shadow-primary/20">
             <div className="bg-card rounded-[20px] p-8">
               <div className="flex items-center gap-3 mb-5">
@@ -42,17 +34,12 @@ const VisiMisi = () => {
                 </div>
                 <h3 className="text-xl font-black text-foreground">Visi</h3>
               </div>
-              <p className="text-foreground/80 leading-relaxed text-base font-medium">
-                Menjadi lembaga penjaminan mutu yang profesional, akuntabel dan selalu relevan dengan tuntutan perkembangan dunia pendidikan dan mampu membawa Itenas berperan aktif dalam pembangunan berkelanjutan di lingkup nasional, berlandaskan nilai nilai integritas, kualitas, dan inovasi yang tinggi.
-              </p>
+              <p className="text-foreground/80 leading-relaxed text-base font-medium whitespace-pre-line">{data.visi}</p>
             </div>
           </div>
 
-          {/* Misi Card */}
-          <div
-            className="mb-8 bg-surface rounded-3xl p-8 border border-border animate-fade-up"
-            style={{ animationDelay: "100ms" }}
-          >
+          {/* Misi */}
+          <div className="mb-8 bg-surface rounded-3xl p-8 border border-border animate-fade-up" style={{ animationDelay: "100ms" }}>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-foreground text-background flex items-center justify-center">
                 <ClipboardList className="w-5 h-5" />
@@ -60,11 +47,8 @@ const VisiMisi = () => {
               <h3 className="text-xl font-black text-foreground">Misi</h3>
             </div>
             <div className="space-y-4">
-              {misiList.map((misi, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-4 bg-card rounded-2xl p-4 shadow-sm border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200"
-                >
+              {data.misi.map((misi, i) => (
+                <div key={i} className="flex items-start gap-4 bg-card rounded-2xl p-4 shadow-sm border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200">
                   <div className="w-8 h-8 rounded-xl bg-accent flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Check className="w-4 h-4 text-primary" strokeWidth={2.5} />
                   </div>
@@ -74,7 +58,7 @@ const VisiMisi = () => {
             </div>
           </div>
 
-          {/* Sasaran Mutu */}
+          {/* Sasaran */}
           <div className="animate-fade-up" style={{ animationDelay: "200ms" }}>
             <div className="flex items-center gap-3 mb-6">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -83,16 +67,13 @@ const VisiMisi = () => {
               <h3 className="text-xl font-black text-foreground">Sasaran Mutu</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {sasaranList.map((sasaran, i) => (
-                <div
-                  key={i}
-                  className="relative bg-card rounded-2xl p-6 border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden"
-                >
+              {data.sasaran.map((s, i) => (
+                <div key={i} className="relative bg-card rounded-2xl p-6 border border-border shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
                   <div className="absolute top-0 left-0 right-0 h-1 bg-primary rounded-t-2xl" />
                   <div className="text-4xl font-black text-primary/10 mb-2 leading-none">
                     {String(i + 1).padStart(2, "0")}
                   </div>
-                  <p className="text-foreground font-semibold text-sm leading-relaxed">{sasaran}</p>
+                  <p className="text-foreground font-semibold text-sm leading-relaxed">{s}</p>
                 </div>
               ))}
             </div>
