@@ -26,7 +26,7 @@ import {
 import { Button } from "@/components/ui/button";
 
 /* Tipe BeritaItem diimport dari store */
-
+const KATEGORI_LIST = ["Audit", "Kegiatan", "Prestasi", "Pengumuman"];
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const formatTanggal = (iso: string) =>
