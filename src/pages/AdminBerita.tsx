@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { useBeritaStore, nextBeritaId, type BeritaItem } from "@/data/beritaStore";
 import {
   Plus, Search, Filter, Newspaper, Pencil, Trash2,
   Eye, X, CheckCircle2, AlertCircle, UploadCloud,
@@ -24,73 +25,8 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-/* ─── Types ─────────────────────────────────────────────── */
-type BeritaItem = {
-  id: string;
-  judul: string;
-  kategori: string;
-  ringkasan: string;
-  isi: string;
-  penulis: string;
-  tanggal: string;
-  gambar: string;
-  featured: boolean;
-  tags: string[];
-};
-
-/* ─── Constants ─────────────────────────────────────────── */
+/* Tipe BeritaItem diimport dari store */
 const KATEGORI_LIST = ["Audit", "Kegiatan", "Prestasi", "Pengumuman"];
-
-const seedBerita: BeritaItem[] = [
-  {
-    id: "BRT-001",
-    judul: "LPM Itenas Sukses Laksanakan Audit Mutu Internal Semester Ganjil 2024/2025",
-    kategori: "Audit",
-    ringkasan: "Audit Mutu Internal (AMI) semester ganjil tahun akademik 2024/2025 telah dilaksanakan secara menyeluruh di seluruh unit kerja Itenas.",
-    isi: "Konten lengkap berita...",
-    penulis: "Tim LPM Itenas",
-    tanggal: "2025-10-24",
-    gambar: "https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=800&auto=format&fit=crop",
-    featured: true,
-    tags: ["Audit", "AMI", "Mutu"],
-  },
-  {
-    id: "BRT-002",
-    judul: "Workshop Penyusunan Kurikulum Berbasis OBE bersama Seluruh Program Studi",
-    kategori: "Kegiatan",
-    ringkasan: "LPM Itenas menyelenggarakan workshop penyusunan kurikulum berbasis Outcome-Based Education (OBE).",
-    isi: "Konten lengkap berita...",
-    penulis: "Divisi Akademik LPM",
-    tanggal: "2025-10-18",
-    gambar: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop",
-    featured: true,
-    tags: ["Workshop", "OBE", "Kurikulum"],
-  },
-  {
-    id: "BRT-003",
-    judul: "Itenas Raih Akreditasi Unggul dari BAN-PT untuk 8 Program Studi",
-    kategori: "Prestasi",
-    ringkasan: "Sebanyak 8 program studi di Institut Teknologi Nasional Bandung berhasil meraih akreditasi Unggul dari BAN-PT.",
-    isi: "Konten lengkap berita...",
-    penulis: "Humas Itenas",
-    tanggal: "2025-10-12",
-    gambar: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["Akreditasi", "BAN-PT", "Prestasi"],
-  },
-  {
-    id: "BRT-004",
-    judul: "Sosialisasi Standar Mutu Baru SPMI kepada Dosen dan Tendik",
-    kategori: "Pengumuman",
-    ringkasan: "LPM Itenas melaksanakan sosialisasi standar mutu terbaru dalam Sistem Penjaminan Mutu Internal.",
-    isi: "Konten lengkap berita...",
-    penulis: "Tim LPM Itenas",
-    tanggal: "2025-10-05",
-    gambar: "https://images.unsplash.com/photo-1558008258-3256797b43f3?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["SPMI", "Sosialisasi", "Standar"],
-  },
-];
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const formatTanggal = (iso: string) =>
@@ -110,9 +46,6 @@ const kategoriIcon = (k: string) => ({
   Pengumuman: Megaphone,
 } as Record<string, React.ElementType>)[k] ?? Newspaper;
 
-function nextId(list: BeritaItem[]) {
-  return `BRT-${String(list.length + 1).padStart(3, "0")}`;
-}
 
 /* ─── Error msg ──────────────────────────────────────────── */
 function ErrorMsg({ msg }: { msg?: string }) {
@@ -248,7 +181,7 @@ const emptyForm: FormState = {
 };
 
 const AdminBerita = () => {
-  const [beritaList, setBeritaList] = useState<BeritaItem[]>(seedBerita);
+  const { list: beritaList, update: setBeritaList } = useBeritaStore();
   const [query, setQuery] = useState("");
   const [filterKat, setFilterKat] = useState("all");
 
@@ -312,8 +245,10 @@ const AdminBerita = () => {
         : b));
       toast.success("Berita diperbarui", { description: form.judul });
     } else {
-      const newItem: BeritaItem = { id: nextId(beritaList), judul: form.judul, kategori: form.kategori, ringkasan: form.ringkasan, isi: form.isi, penulis: form.penulis, tanggal: form.tanggal, gambar, featured: form.featured, tags: form.tags };
-      setBeritaList((prev) => [newItem, ...prev]);
+      setBeritaList((prev) => {
+        const newItem: BeritaItem = { id: nextBeritaId(prev), judul: form.judul, kategori: form.kategori, ringkasan: form.ringkasan, isi: form.isi, penulis: form.penulis, tanggal: form.tanggal, gambar, featured: form.featured, tags: form.tags };
+        return [newItem, ...prev];
+      });
       toast.success("Berita ditambahkan", { description: form.judul });
     }
     setFormOpen(false);

@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Home, BookOpen, User, Search, LogOut, Menu, X, Newspaper } from "lucide-react";
+import { Home, BookOpen, User, Search, LogOut, Menu, X, Newspaper, History, Eye, Map, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -14,6 +14,10 @@ const navItems = [
   { to: "/admin", label: "Dashboard", icon: Home, end: true },
   { to: "/admin/dokumen", label: "Dokumen", icon: BookOpen },
   { to: "/admin/berita", label: "Berita", icon: Newspaper },
+  { to: "/admin/sejarah", label: "Sejarah", icon: History },
+  { to: "/admin/visi-misi", label: "Visi & Misi", icon: Eye },
+  { to: "/admin/road-map", label: "Road Map", icon: Map },
+  { to: "/admin/tim", label: "Tim LPM", icon: Users },
   { to: "/admin/akun", label: "Akun", icon: User },
 ];
 
