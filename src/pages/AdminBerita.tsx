@@ -46,9 +46,6 @@ const kategoriIcon = (k: string) => ({
   Pengumuman: Megaphone,
 } as Record<string, React.ElementType>)[k] ?? Newspaper;
 
-function nextId(list: BeritaItem[]) {
-  return `BRT-${String(list.length + 1).padStart(3, "0")}`;
-}
 
 /* ─── Error msg ──────────────────────────────────────────── */
 function ErrorMsg({ msg }: { msg?: string }) {
