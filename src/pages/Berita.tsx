@@ -4,6 +4,7 @@ import {
   Search, Calendar, Tag, Clock, ArrowRight, ChevronRight,
   Newspaper, TrendingUp, BookOpen, Megaphone,
 } from "lucide-react";
+import { useBeritaStore, type BeritaItem as StoreBeritaItem } from "@/data/beritaStore";
 
 /* ─── Types ─────────────────────────────────────────────── */
 export type BeritaItem = {
