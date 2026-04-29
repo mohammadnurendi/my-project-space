@@ -1,12 +1,9 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Calendar, Clock, User, Tag,
-  Share2, Facebook, Twitter, Link2,
   ChevronRight, Newspaper, TrendingUp, BookOpen, Megaphone,
-  Eye, CheckCircle2,
+  Eye,
 } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 /* ─── Types ─────────────────────────────────────────────── */
 type BeritaItem = {
@@ -283,7 +280,6 @@ function RelatedCard({ berita }: { berita: BeritaItem }) {
 const BeritaDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [copied, setCopied] = useState(false);
 
   const berita = seedBerita.find((b) => b.id === id);
   const related = seedBerita.filter((b) => b.id !== id).slice(0, 4);
@@ -309,13 +305,6 @@ const BeritaDetail = () => {
 
   const waktuBaca = estimasiWaktuBaca(berita.isi);
   const KatIcon = kategoriIcon(berita.kategori);
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setCopied(true);
-    toast.success("Link berhasil disalin!");
-    setTimeout(() => setCopied(false), 2500);
-  };
 
   return (
     <div className="min-h-screen bg-surface">
@@ -403,36 +392,6 @@ const BeritaDetail = () => {
                 ))}
               </div>
             )}
-
-            {/* Share */}
-            <div className="mt-8 pt-8 border-t border-border">
-              <p className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-                <Share2 className="w-4 h-4 text-primary" /> Bagikan Berita Ini
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <a
-                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-[#1877F2] hover:bg-[#1877F2]/90 text-white text-[13px] font-semibold px-4 py-2.5 rounded-full transition-all hover:shadow-lg active:scale-95"
-                >
-                  <Facebook className="w-4 h-4" /> Facebook
-                </a>
-                <a
-                  href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(berita.judul)}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background text-[13px] font-semibold px-4 py-2.5 rounded-full transition-all hover:shadow-lg active:scale-95"
-                >
-                  <Twitter className="w-4 h-4" /> Twitter / X
-                </a>
-                <button
-                  onClick={handleCopyLink}
-                  className={`inline-flex items-center gap-2 text-[13px] font-semibold px-4 py-2.5 rounded-full transition-all hover:shadow-md active:scale-95 border ${copied ? "bg-emerald-50 border-emerald-300 text-emerald-700" : "bg-card border-border text-muted-foreground hover:text-foreground hover:border-primary/40"}`}
-                >
-                  {copied ? <CheckCircle2 className="w-4 h-4" /> : <Link2 className="w-4 h-4" />}
-                  {copied ? "Tersalin!" : "Salin Link"}
-                </button>
-              </div>
-            </div>
 
             {/* Back button */}
             <div className="mt-10">
