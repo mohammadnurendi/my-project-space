@@ -6,95 +6,9 @@ import {
 } from "lucide-react";
 import { useBeritaStore, type BeritaItem as StoreBeritaItem } from "@/data/beritaStore";
 
-/* ─── Types ─────────────────────────────────────────────── */
-export type BeritaItem = {
-  id: string;
-  judul: string;
-  kategori: string;
-  ringkasan: string;
-  isi: string;
-  penulis: string;
-  tanggal: string;
-  gambar: string;
-  featured: boolean;
-  tags: string[];
-};
+/* ─── Types (re-exported from store untuk kompat) ───────── */
+export type BeritaItem = StoreBeritaItem;
 
-/* ─── Seed data ─────────────────────────────────────────── */
-export const seedBerita: BeritaItem[] = [
-  {
-    id: "BRT-001",
-    judul: "LPM Itenas Sukses Laksanakan Audit Mutu Internal Semester Ganjil 2024/2025",
-    kategori: "Audit",
-    ringkasan: "Audit Mutu Internal (AMI) semester ganjil tahun akademik 2024/2025 telah dilaksanakan secara menyeluruh di seluruh unit kerja Itenas, mencakup 12 program studi dan 6 unit layanan.",
-    isi: "Detail lengkap audit...",
-    penulis: "Tim LPM Itenas",
-    tanggal: "2025-10-24",
-    gambar: "https://images.unsplash.com/photo-1606761568499-6d2451b23c66?w=800&auto=format&fit=crop",
-    featured: true,
-    tags: ["Audit", "AMI", "Mutu"],
-  },
-  {
-    id: "BRT-002",
-    judul: "Workshop Penyusunan Kurikulum Berbasis OBE bersama Seluruh Program Studi",
-    kategori: "Kegiatan",
-    ringkasan: "LPM Itenas menyelenggarakan workshop penyusunan kurikulum berbasis Outcome-Based Education (OBE) yang diikuti oleh seluruh ketua program studi dan tim kurikulum.",
-    isi: "Detail lengkap workshop...",
-    penulis: "Divisi Akademik LPM",
-    tanggal: "2025-10-18",
-    gambar: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=800&auto=format&fit=crop",
-    featured: true,
-    tags: ["Workshop", "OBE", "Kurikulum"],
-  },
-  {
-    id: "BRT-003",
-    judul: "Itenas Raih Akreditasi Unggul dari BAN-PT untuk 8 Program Studi",
-    kategori: "Prestasi",
-    ringkasan: "Sebanyak 8 program studi di Institut Teknologi Nasional Bandung berhasil meraih akreditasi Unggul dari Badan Akreditasi Nasional Perguruan Tinggi (BAN-PT) pada periode penilaian 2025.",
-    isi: "Detail lengkap akreditasi...",
-    penulis: "Humas Itenas",
-    tanggal: "2025-10-12",
-    gambar: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["Akreditasi", "BAN-PT", "Prestasi"],
-  },
-  {
-    id: "BRT-004",
-    judul: "Sosialisasi Standar Mutu Baru SPMI kepada Dosen dan Tenaga Kependidikan",
-    kategori: "Pengumuman",
-    ringkasan: "LPM Itenas melaksanakan sosialisasi standar mutu terbaru dalam Sistem Penjaminan Mutu Internal (SPMI) kepada seluruh dosen dan tenaga kependidikan di lingkungan Itenas.",
-    isi: "Detail lengkap sosialisasi...",
-    penulis: "Tim LPM Itenas",
-    tanggal: "2025-10-05",
-    gambar: "https://images.unsplash.com/photo-1558008258-3256797b43f3?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["SPMI", "Sosialisasi", "Standar"],
-  },
-  {
-    id: "BRT-005",
-    judul: "Pelatihan Auditor Internal Angkatan XII: Mencetak Auditor Kompeten",
-    kategori: "Kegiatan",
-    ringkasan: "Program pelatihan auditor internal angkatan ke-12 telah resmi dibuka. Sebanyak 35 peserta dari berbagai unit akan mengikuti rangkaian pelatihan intensif selama 3 hari.",
-    isi: "Detail pelatihan...",
-    penulis: "Divisi Audit LPM",
-    tanggal: "2025-09-28",
-    gambar: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["Auditor", "Pelatihan", "AMI"],
-  },
-  {
-    id: "BRT-006",
-    judul: "Rapat Tinjauan Manajemen: Evaluasi Kinerja Tahunan LPM 2024",
-    kategori: "Kegiatan",
-    ringkasan: "Rapat Tinjauan Manajemen (RTM) tahunan LPM Itenas dilaksanakan untuk mengevaluasi capaian kinerja sepanjang tahun 2024 dan merumuskan program kerja strategis tahun 2025.",
-    isi: "Detail RTM...",
-    penulis: "Tim LPM Itenas",
-    tanggal: "2025-09-15",
-    gambar: "https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=800&auto=format&fit=crop",
-    featured: false,
-    tags: ["RTM", "Evaluasi", "Manajemen"],
-  },
-];
 
 export const KATEGORI_LIST = ["Semua", "Audit", "Kegiatan", "Prestasi", "Pengumuman"];
 
@@ -216,6 +130,7 @@ function BeritaCard({ berita }: { berita: BeritaItem }) {
    MAIN PAGE
 ═══════════════════════════════════════════════════════════ */
 const Berita = () => {
+  const { list: seedBerita } = useBeritaStore();
   const [query, setQuery] = useState("");
   const [aktifKategori, setAktifKategori] = useState("Semua");
 
@@ -229,7 +144,8 @@ const Berita = () => {
     return source.filter(
       (b) => b.judul.toLowerCase().includes(q) || b.ringkasan.toLowerCase().includes(q) || b.tags.some((t) => t.toLowerCase().includes(q))
     );
-  }, [aktifKategori, query]);
+  }, [aktifKategori, query, seedBerita, nonFeatured]);
+
 
   return (
     <div className="min-h-screen bg-surface">
