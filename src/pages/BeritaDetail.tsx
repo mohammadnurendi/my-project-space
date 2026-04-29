@@ -4,20 +4,8 @@ import {
   ChevronRight, Newspaper, TrendingUp, BookOpen, Megaphone,
   Eye,
 } from "lucide-react";
+import { useBeritaStore, type BeritaItem } from "@/data/beritaStore";
 
-/* ─── Types ─────────────────────────────────────────────── */
-type BeritaItem = {
-  id: string;
-  judul: string;
-  kategori: string;
-  ringkasan: string;
-  isi: string;
-  penulis: string;
-  tanggal: string;
-  gambar: string;
-  featured: boolean;
-  tags: string[];
-};
 
 /* ─── Shared seed data ───────────────────────────────────── */
 const seedBerita: BeritaItem[] = [
