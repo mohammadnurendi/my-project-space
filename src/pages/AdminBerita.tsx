@@ -184,7 +184,7 @@ const emptyForm: FormState = {
 };
 
 const AdminBerita = () => {
-  const [beritaList, setBeritaList] = useState<BeritaItem[]>(seedBerita);
+  const { list: beritaList, update: setBeritaList } = useBeritaStore();
   const [query, setQuery] = useState("");
   const [filterKat, setFilterKat] = useState("all");
 
@@ -248,8 +248,10 @@ const AdminBerita = () => {
         : b));
       toast.success("Berita diperbarui", { description: form.judul });
     } else {
-      const newItem: BeritaItem = { id: nextId(beritaList), judul: form.judul, kategori: form.kategori, ringkasan: form.ringkasan, isi: form.isi, penulis: form.penulis, tanggal: form.tanggal, gambar, featured: form.featured, tags: form.tags };
-      setBeritaList((prev) => [newItem, ...prev]);
+      setBeritaList((prev) => {
+        const newItem: BeritaItem = { id: nextBeritaId(prev), judul: form.judul, kategori: form.kategori, ringkasan: form.ringkasan, isi: form.isi, penulis: form.penulis, tanggal: form.tanggal, gambar, featured: form.featured, tags: form.tags };
+        return [newItem, ...prev];
+      });
       toast.success("Berita ditambahkan", { description: form.judul });
     }
     setFormOpen(false);
