@@ -166,6 +166,16 @@ function makeStore<T>(key: string, defaults: T) {
 export const useSejarahStore = makeStore<SejarahData>("lpm:sejarah:v1", SEJARAH_DEFAULT);
 export const useVisiMisiStore = makeStore<VisiMisiData>("lpm:visimisi:v1", VISIMISI_DEFAULT);
 export const useRoadMapStore = makeStore<RoadMapData>("lpm:roadmap:v1", ROADMAP_DEFAULT);
-export const useTimStore = makeStore<TimData>("lpm:tim:v1", TIM_DEFAULT);
+/* v2 = struktur Tim dinamis (levels[]) */
+export const useTimStore = makeStore<TimData>("lpm:tim:v2", TIM_DEFAULT);
+
+/* Helper: convert a File ke data URL (base64) untuk disimpan di store. */
+export const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
 
 export const newId = () => `id-${Math.random().toString(36).slice(2, 9)}`;
