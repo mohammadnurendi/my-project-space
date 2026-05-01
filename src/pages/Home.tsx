@@ -293,19 +293,28 @@ const Home = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">Lokasi Kami</h2>
           </div>
 
-          <div className="rounded-3xl overflow-hidden shadow-xl border border-border animate-fade-up">
+          <a
+            href="https://maps.app.goo.gl/CGywft5hbDRHc4y2A"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block rounded-3xl overflow-hidden shadow-xl border border-border animate-fade-up group relative"
+            aria-label="Buka lokasi Itenas di Google Maps"
+          >
             <iframe
               title="Lokasi LPM Itenas"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3961.196843706265!2d107.63271731477248!3d-6.919249695003085!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e68e763c5d72989%3A0x1235c16ec0af5ef1!2sInstitut%20Teknologi%20Nasional%20Bandung!5e0!3m2!1sid!2sid!4v1680000000000!5m2!1sid!2sid"
               width="100%"
               height={420}
-              style={{ border: 0 }}
+              style={{ border: 0, pointerEvents: "none" }}
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
               className="w-full h-[280px] sm:h-[420px]"
             />
-          </div>
+            <span className="absolute bottom-4 right-4 inline-flex items-center gap-2 bg-primary text-primary-foreground rounded-full px-4 py-2 text-xs font-bold shadow-lg group-hover:scale-105 transition-transform">
+              <MapPin className="w-3.5 h-3.5" /> Buka di Google Maps
+            </span>
+          </a>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
             {locationInfo.map((info, i) => {
