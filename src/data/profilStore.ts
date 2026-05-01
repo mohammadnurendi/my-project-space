@@ -71,24 +71,45 @@ const ROADMAP_DEFAULT: RoadMapData = {
   ppepp: ["Standar", "Pelaksanaan", "Monitoring", "Evaluasi", "Audit Internal", "Peningkatan Mutu"],
 };
 
-/* ─── Tim ─────────────────────────────────────────────────── */
+/* ─── Tim ─────────────────────────────────────────────────
+ * `levels` adalah daftar level struktur organisasi yang dinamis.
+ * Level 1 idealnya berisi 1 anggota (Kepala). Level 2,3,4,...
+ * bebas jumlah anggota. Admin bisa menambah / menghapus level.
+ */
 export type TimMember = { id: string; name: string; role: string; photo?: string };
+export type TimLevel = { id: string; label: string; members: TimMember[] };
 export type TimData = {
-  kepala: TimMember;
-  level2: TimMember[];
-  level3: TimMember;
+  levels: TimLevel[];
   pengelola: TimMember[];
   auditor: string[];
 };
 const TIM_DEFAULT: TimData = {
-  kepala: { id: "k1", name: "Ni Made Rai Ratih, S.T., M.Si", role: "Kepala Lembaga Penjaminan Mutu Itenas" },
-  level2: [
-    { id: "l1", name: "Sri Lestari", role: "Administrasi Satuan Penjamin Mutu" },
-    { id: "l2", name: "Kancitra Pharmawati, S.T., M.T\nTia Adelia Suryani, S.T., M.P.K\nIndrianawati, S.T., M.T.", role: "SPMF - Fakultas Teknik Sipil dan Perencanaan" },
-    { id: "l3", name: "Dian Duhita Permata, S.T.M.T.\nAnwar Subkiman, S.Sn., M.Ds.\nMaharani Dian Permanasari, M. Ds.", role: "SPMF - Fakultas Arsitektur dan Desain" },
-    { id: "l4", name: "Dyah Setyo Pertiwi, S.T., M.T., Ph.D\nFerry Hidayat, S.T., M.T.\nIwan Agustiawan, S.T., M.T.", role: "SPMF - Fakultas Teknologi Industri" },
+  levels: [
+    {
+      id: "lv-1",
+      label: "Kepala LPM",
+      members: [
+        { id: "k1", name: "Ni Made Rai Ratih, S.T., M.Si", role: "Kepala Lembaga Penjaminan Mutu Itenas" },
+      ],
+    },
+    {
+      id: "lv-2",
+      label: "Struktur Level 2",
+      members: [
+        { id: "l1", name: "Sri Lestari", role: "Administrasi Satuan Penjamin Mutu" },
+        { id: "l2", name: "Kancitra Pharmawati, S.T., M.T\nTia Adelia Suryani, S.T., M.P.K\nIndrianawati, S.T., M.T.", role: "SPMF - Fakultas Teknik Sipil dan Perencanaan" },
+        { id: "l3", name: "Dian Duhita Permata, S.T.M.T.\nAnwar Subkiman, S.Sn., M.Ds.\nMaharani Dian Permanasari, M. Ds.", role: "SPMF - Fakultas Arsitektur dan Desain" },
+        { id: "l4", name: "Dyah Setyo Pertiwi, S.T., M.T., Ph.D\nFerry Hidayat, S.T., M.T.\nIwan Agustiawan, S.T., M.T.", role: "SPMF - Fakultas Teknologi Industri" },
+      ],
+    },
+    {
+      id: "lv-3",
+      label: "Anggota Level 3",
+      members: [
+        { id: "l3a", name: "Andika Dwicahyo Aribowo, S.Ds., M.Ds. & Dr.rer.nat Dian Noor Handiani", role: "Anggota Lembaga Penjaminan Mutu Itenas" },
+      ],
+    },
   ],
-  level3: { id: "l3a", name: "Andika Dwicahyo Aribowo, S.Ds., M.Ds. & Dr.rer.nat Dian Noor Handiani", role: "Anggota Lembaga Penjaminan Mutu Itenas" },
   pengelola: Array.from({ length: 12 }, (_, i) => ({ id: `p${i + 1}`, name: "Muhammad Fulan, S.T.", role: "Kepala SPM Itenas" })),
   auditor: [
     "Aldrian Agusta, S. Sn., M. Ds", "Ali, S.T., M.T", "Ambar Harsono, Ir., M.T",
@@ -145,6 +166,16 @@ function makeStore<T>(key: string, defaults: T) {
 export const useSejarahStore = makeStore<SejarahData>("lpm:sejarah:v1", SEJARAH_DEFAULT);
 export const useVisiMisiStore = makeStore<VisiMisiData>("lpm:visimisi:v1", VISIMISI_DEFAULT);
 export const useRoadMapStore = makeStore<RoadMapData>("lpm:roadmap:v1", ROADMAP_DEFAULT);
-export const useTimStore = makeStore<TimData>("lpm:tim:v1", TIM_DEFAULT);
+/* v2 = struktur Tim dinamis (levels[]) */
+export const useTimStore = makeStore<TimData>("lpm:tim:v2", TIM_DEFAULT);
+
+/* Helper: convert a File ke data URL (base64) untuk disimpan di store. */
+export const fileToDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
 
 export const newId = () => `id-${Math.random().toString(36).slice(2, 9)}`;
