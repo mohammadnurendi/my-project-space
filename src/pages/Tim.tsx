@@ -5,6 +5,7 @@ import { useTimStore } from "@/data/profilStore";
 
 const Tim = () => {
   const { data } = useTimStore();
+  const [headLevel, ...subLevels] = data.levels;
 
   return (
     <div>
@@ -28,28 +29,46 @@ const Tim = () => {
             <p className="text-muted-foreground mt-2 text-sm">Berikut ini adalah tim pengelola</p>
           </div>
 
-          <div className="animate-fade-up overflow-x-auto pb-4">
-            <div className="flex justify-center mb-6">
-              <OrgCard name={data.kepala.name} role={data.kepala.role} isHead />
-            </div>
-            <div className="flex justify-center"><div className="w-0.5 h-8 bg-primary/20" /></div>
-            <div className="flex justify-center"><div className="w-3/4 h-0.5 bg-primary/20" /></div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              {data.level2.map((m) => (
-                <div key={m.id} className="flex flex-col items-center">
-                  <div className="w-0.5 h-8 bg-primary/20" />
-                  <OrgCard name={m.name} role={m.role} />
+          <div className="animate-fade-up overflow-x-auto pb-4 space-y-2">
+            {/* Head level (kartu tunggal di tengah) */}
+            {headLevel && (
+              <>
+                <div className="flex justify-center flex-wrap gap-4">
+                  {headLevel.members.map((m) => (
+                    <OrgCard key={m.id} name={m.name} role={m.role} isHead />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
 
-            <div className="flex justify-center mt-4">
-              <div className="flex flex-col items-center">
-                <div className="w-0.5 h-8 bg-primary/20" />
-                <OrgCard name={data.level3.name} role={data.level3.role} />
-              </div>
-            </div>
+            {subLevels.map((lvl) => {
+              const cols = Math.min(Math.max(lvl.members.length, 1), 4);
+              const gridClass =
+                cols === 1 ? "grid grid-cols-1 justify-items-center" :
+                cols === 2 ? "grid grid-cols-1 sm:grid-cols-2" :
+                cols === 3 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" :
+                "grid grid-cols-2 lg:grid-cols-4";
+              return (
+                <div key={lvl.id} className="space-y-2">
+                  <div className="flex justify-center"><div className="w-0.5 h-6 bg-primary/20" /></div>
+                  {lvl.members.length > 1 && (
+                    <div className="flex justify-center"><div className="w-3/4 h-0.5 bg-primary/20" /></div>
+                  )}
+                  {lvl.label && (
+                    <p className="text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                      {lvl.label}
+                    </p>
+                  )}
+                  <div className={`${gridClass} gap-4`}>
+                    {lvl.members.map((m) => (
+                      <div key={m.id} className="flex flex-col items-center">
+                        <OrgCard name={m.name} role={m.role} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
