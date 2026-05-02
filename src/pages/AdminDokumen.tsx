@@ -809,9 +809,9 @@ function DocumentDialog({
 
         <div className="px-6 py-5 space-y-4">
           <div>
-            <Label className="text-[13px] font-semibold">Cover / Pembatas <span className="text-destructive">*</span></Label>
+            <Label className="text-[13px] font-semibold">Kategori Dokumen <span className="text-destructive">*</span></Label>
             <Select value={form.coverId} onValueChange={(v) => setForm({ ...form, coverId: v })}>
-              <SelectTrigger className="rounded-lg h-10 mt-1.5"><SelectValue placeholder="Pilih cover" /></SelectTrigger>
+              <SelectTrigger className="rounded-lg h-10 mt-1.5"><SelectValue placeholder="Pilih kategori" /></SelectTrigger>
               <SelectContent>
                 {covers.map((c) => <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>)}
               </SelectContent>
