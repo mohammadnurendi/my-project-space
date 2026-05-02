@@ -56,15 +56,27 @@ const AdminDokumen = () => {
   const currentDoc = view.kind === "doc" ? data.documents.find((d) => d.id === view.docId) : undefined;
   const currentDocCover = currentDoc ? data.covers.find((c) => c.id === currentDoc.coverId) : undefined;
 
-  const filteredCovers = useMemo(
-    () => data.covers.filter((c) => c.title.toLowerCase().includes(query.toLowerCase())),
-    [data.covers, query]
-  );
+  const filteredCovers = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return data.covers;
+    return data.covers.filter(
+      (c) =>
+        c.title.toLowerCase().includes(q) ||
+        (c.description ?? "").toLowerCase().includes(q),
+    );
+  }, [data.covers, query]);
   const filteredDocs = useMemo(() => {
     if (view.kind !== "docs") return [];
-    return data.documents
-      .filter((d) => d.coverId === view.coverId)
-      .filter((d) => d.name.toLowerCase().includes(query.toLowerCase()));
+    const base = data.documents.filter((d) => d.coverId === view.coverId);
+    const q = query.trim().toLowerCase();
+    if (!q) return base;
+    return base.filter(
+      (d) =>
+        d.name.toLowerCase().includes(q) ||
+        d.kegiatan.toLowerCase().includes(q) ||
+        d.unit.toLowerCase().includes(q) ||
+        (d.jenis ?? "").toLowerCase().includes(q),
+    );
   }, [data.documents, view, query]);
 
   /* ── Delete handler ─── */
@@ -72,7 +84,7 @@ const AdminDokumen = () => {
     if (!deleteDlg) return;
     if (deleteDlg.kind === "cover") {
       store.removeCover(deleteDlg.id);
-      toast.success("Cover dihapus", { description: "Termasuk semua dokumen di dalamnya." });
+      toast.success("Kategori dihapus", { description: "Termasuk semua dokumen di dalamnya." });
     } else if (deleteDlg.kind === "doc") {
       store.removeDocument(deleteDlg.id);
       toast.success("Dokumen dihapus");
@@ -90,7 +102,7 @@ const AdminDokumen = () => {
   const headerRight =
     view.kind === "covers" ? (
       <Button onClick={() => setCoverDlg({ open: true })} className="rounded-xl shadow-md shadow-primary/20 gap-2">
-        <Plus className="w-4 h-4" />Tambah Cover
+        <Plus className="w-4 h-4" />Tambah Kategori
       </Button>
     ) : view.kind === "docs" ? (
       <Button onClick={() => setDocDlg({ open: true, coverId: view.coverId })} className="rounded-xl shadow-md shadow-primary/20 gap-2">
@@ -117,7 +129,7 @@ const AdminDokumen = () => {
       {view.kind === "covers" && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
           {[
-            { label: "Total Cover", value: data.covers.length, color: "text-foreground" },
+            { label: "Total Kategori", value: data.covers.length, color: "text-foreground" },
             { label: "Total Dokumen", value: data.documents.length, color: "text-primary" },
             { label: "Aktif", value: data.documents.filter((d) => d.status === "Aktif").length, color: "text-emerald-600" },
             { label: "Revisi", value: data.documents.filter((d) => d.status === "Revisi").length, color: "text-blue-600" },
@@ -137,7 +149,7 @@ const AdminDokumen = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder={view.kind === "covers" ? "Cari cover..." : "Cari dokumen di cover ini..."}
+              placeholder={view.kind === "covers" ? "Cari kategori dokumen, judul, atau deskripsi..." : "Cari dokumen (nama, jenis, unit, kegiatan)..."}
               className="w-full bg-muted/60 border border-transparent focus:border-primary/40 focus:bg-card focus:ring-2 focus:ring-primary/15 rounded-xl pl-11 pr-4 py-2.5 text-sm placeholder:text-muted-foreground outline-none transition-all"
             />
           </div>
@@ -184,10 +196,10 @@ const AdminDokumen = () => {
         onSave={(payload) => {
           if (coverDlg.editing) {
             store.updateCover(coverDlg.editing.id, payload);
-            toast.success("Cover diperbarui");
+            toast.success("Kategori diperbarui");
           } else {
             store.addCover(payload);
-            toast.success("Cover ditambahkan");
+            toast.success("Kategori ditambahkan");
           }
           setCoverDlg({ open: false });
         }}
@@ -245,13 +257,13 @@ const AdminDokumen = () => {
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {deleteDlg?.kind === "cover" && "Hapus cover ini?"}
+              {deleteDlg?.kind === "cover" && "Hapus kategori ini?"}
               {deleteDlg?.kind === "doc" && "Hapus dokumen ini?"}
               {deleteDlg?.kind === "rev" && "Hapus revisi ini?"}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {deleteDlg?.kind === "cover"
-                ? "Semua dokumen di dalam cover juga akan terhapus. Tindakan ini tidak dapat dibatalkan."
+                ? "Semua dokumen di dalam kategori ini juga akan terhapus. Tindakan ini tidak dapat dibatalkan."
                 : "Tindakan ini tidak dapat dibatalkan."}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -284,7 +296,7 @@ function Breadcrumbs({
   return (
     <div className="flex items-center gap-2 text-sm mb-5 flex-wrap">
       <button onClick={onHome} className="font-semibold text-muted-foreground hover:text-primary transition-colors">
-        Semua Cover
+        Semua Kategori
       </button>
       {(view.kind === "docs" || view.kind === "doc") && cover && (
         <>
@@ -323,7 +335,7 @@ function CoversGrid({
     return (
       <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
         <BookMarked className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground">Belum ada cover. Klik "Tambah Cover" untuk mulai.</p>
+        <p className="text-sm text-muted-foreground">Belum ada kategori. Klik "Tambah Kategori" untuk mulai.</p>
       </div>
     );
   }
@@ -351,10 +363,10 @@ function CoversGrid({
             </div>
           </button>
           <div className="px-5 pb-4 flex items-center justify-end gap-1 border-t border-border pt-3">
-            <button onClick={() => onEdit(c)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Edit cover">
+            <button onClick={() => onEdit(c)} className="p-2 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Edit kategori">
               <Pencil className="w-4 h-4" />
             </button>
-            <button onClick={() => onDelete(c.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Hapus cover">
+            <button onClick={() => onDelete(c.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Hapus kategori">
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
@@ -392,7 +404,7 @@ function DocsList({
       {docs.length === 0 ? (
         <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
           <FileText className="w-12 h-12 text-muted-foreground/40 mx-auto mb-3" />
-          <p className="text-sm text-muted-foreground">Belum ada dokumen di cover ini.</p>
+          <p className="text-sm text-muted-foreground">Belum ada dokumen di kategori ini.</p>
         </div>
       ) : (
         <div className="bg-card border border-border rounded-2xl shadow-sm overflow-hidden">
