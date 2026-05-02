@@ -717,7 +717,7 @@ function CoverDialog({
 
           <div>
             <Label className="text-[13px] font-semibold text-foreground/80">Deskripsi Singkat</Label>
-            <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="Penjelasan singkat tentang cover ini..." className="rounded-lg mt-1.5" />
+            <Textarea value={desc} onChange={(e) => setDesc(e.target.value)} rows={3} placeholder="Penjelasan singkat tentang kategori ini..." className="rounded-lg mt-1.5" />
           </div>
         </div>
 
