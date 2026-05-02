@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, BookMarked, FileText, Lock, Download, Eye,
-  GitBranch, Calendar, History, CheckCircle2, ChevronRight,
+  GitBranch, Calendar, History, CheckCircle2, ChevronRight, Search,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
@@ -21,6 +21,7 @@ const Dokumen = () => {
   const navigate = useNavigate();
   const { data } = useDokumenStore();
   const [view, setView] = useState<View>({ kind: "covers" });
+  const [query, setQuery] = useState("");
 
   const handleLogout = () => {
     logout();
@@ -32,7 +33,31 @@ const Dokumen = () => {
     : view.kind === "doc" ? data.covers.find((c) => c.id === data.documents.find((d) => d.id === view.docId)?.coverId)
     : undefined;
   const doc = view.kind === "doc" ? data.documents.find((d) => d.id === view.docId) : undefined;
-  const docsInCover = view.kind === "docs" ? data.documents.filter((d) => d.coverId === view.coverId) : [];
+
+  const q = query.trim().toLowerCase();
+  const filteredCovers = useMemo(
+    () =>
+      !q
+        ? data.covers
+        : data.covers.filter(
+            (c) =>
+              c.title.toLowerCase().includes(q) ||
+              (c.description ?? "").toLowerCase().includes(q),
+          ),
+    [data.covers, q],
+  );
+  const docsInCover = useMemo(() => {
+    if (view.kind !== "docs") return [];
+    const base = data.documents.filter((d) => d.coverId === view.coverId);
+    if (!q) return base;
+    return base.filter(
+      (d) =>
+        d.name.toLowerCase().includes(q) ||
+        d.kegiatan.toLowerCase().includes(q) ||
+        d.unit.toLowerCase().includes(q) ||
+        (d.jenis ?? "").toLowerCase().includes(q),
+    );
+  }, [data.documents, view, q]);
 
   return (
     <div className="min-h-screen bg-surface">
@@ -56,7 +81,7 @@ const Dokumen = () => {
                 Dokumen <span className="text-primary">LPM Itenas</span>
               </h1>
               <p className="mt-3 text-background/60 text-base max-w-xl">
-                Pilih cover untuk melihat daftar dokumen. Setiap dokumen menampilkan revisi terbaru beserta riwayatnya.
+                Pilih kategori untuk melihat daftar dokumen. Setiap dokumen menampilkan revisi terbaru beserta riwayatnya.
               </p>
             </div>
             {email && (
@@ -80,8 +105,8 @@ const Dokumen = () => {
 
           {/* Breadcrumbs */}
           <nav className="flex items-center gap-2 text-sm mb-6 flex-wrap">
-            <button onClick={() => setView({ kind: "covers" })} className="font-semibold text-muted-foreground hover:text-primary transition-colors">
-              Semua Cover
+            <button onClick={() => { setView({ kind: "covers" }); setQuery(""); }} className="font-semibold text-muted-foreground hover:text-primary transition-colors">
+              Semua Kategori
             </button>
             {cover && (
               <>
@@ -102,14 +127,31 @@ const Dokumen = () => {
             )}
           </nav>
 
+          {/* Search bar (covers & docs view) */}
+          {(view.kind === "covers" || view.kind === "docs") && (
+            <div className="relative mb-6 max-w-xl">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={
+                  view.kind === "covers"
+                    ? "Cari kategori dokumen..."
+                    : "Cari dokumen dalam kategori ini..."
+                }
+                className="w-full pl-11 pr-4 py-3 rounded-2xl bg-card border border-border focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none text-sm transition-all"
+              />
+            </div>
+          )}
+
           {/* COVERS GRID */}
           {view.kind === "covers" && (
             <>
-              {data.covers.length === 0 ? (
-                <EmptyState icon={<BookMarked />} text="Belum ada dokumen yang dipublikasikan." />
+              {filteredCovers.length === 0 ? (
+                <EmptyState icon={<BookMarked />} text={q ? "Tidak ada kategori yang cocok dengan pencarian." : "Belum ada dokumen yang dipublikasikan."} />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {data.covers.map((c, i) => (
+                  {filteredCovers.map((c, i) => (
                     <button
                       key={c.id}
                       onClick={() => setView({ kind: "docs", coverId: c.id })}
@@ -189,7 +231,7 @@ function DocsListPublic({
       </div>
 
       {docs.length === 0 ? (
-        <EmptyState icon={<FileText />} text="Belum ada dokumen di cover ini." />
+        <EmptyState icon={<FileText />} text="Belum ada dokumen di kategori ini." />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {docs.map((d) => {
