@@ -666,7 +666,7 @@ function CoverDialog({
   };
 
   const submit = () => {
-    if (!title.trim()) { setError("Judul cover wajib diisi"); return; }
+    if (!title.trim()) { setError("Judul kategori wajib diisi"); return; }
     onSave({ title: title.trim(), description: desc.trim() || undefined, image });
   };
 
@@ -674,23 +674,23 @@ function CoverDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="rounded-2xl max-w-lg p-0 gap-0">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
-          <DialogTitle className="text-xl font-black">{editing ? "Edit Cover" : "Tambah Cover"}</DialogTitle>
+          <DialogTitle className="text-xl font-black">{editing ? "Edit Kategori" : "Tambah Kategori"}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Cover berfungsi sebagai pembatas / pengelompok dokumen.
+            Kategori berfungsi sebagai pembatas / pengelompok dokumen.
           </DialogDescription>
         </DialogHeader>
 
         <div className="px-6 py-5 space-y-4">
           {/* Image upload */}
           <div className="space-y-1.5">
-            <Label className="text-[13px] font-semibold text-foreground/80">Gambar Cover (opsional)</Label>
+            <Label className="text-[13px] font-semibold text-foreground/80">Gambar Kategori (opsional)</Label>
             <div
               onClick={() => fileRef.current?.click()}
               className="aspect-[16/9] rounded-xl border-2 border-dashed border-border hover:border-primary/50 cursor-pointer overflow-hidden bg-muted/30 flex items-center justify-center relative group transition-colors"
             >
               {image ? (
                 <>
-                  <img src={image} alt="Cover" className="w-full h-full object-cover" />
+                  <img src={image} alt="Kategori" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); setImage(undefined); }}
@@ -710,7 +710,7 @@ function CoverDialog({
           </div>
 
           <div>
-            <Label className="text-[13px] font-semibold text-foreground/80">Judul Cover <span className="text-destructive">*</span></Label>
+            <Label className="text-[13px] font-semibold text-foreground/80">Judul Kategori <span className="text-destructive">*</span></Label>
             <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Contoh: Pedoman SPMI" className="rounded-lg h-10 mt-1.5" />
             {error && <p className="text-[11px] text-destructive mt-1.5 inline-flex items-center gap-1"><AlertCircle className="w-3 h-3" />{error}</p>}
           </div>
