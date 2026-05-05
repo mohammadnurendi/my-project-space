@@ -2,6 +2,7 @@ import HeroSection from "@/components/HeroSection";
 import OrgCard from "@/components/OrgCard";
 import TeamCard from "@/components/TeamCard";
 import { useTimStore } from "@/data/profilStore";
+import heroBg from "@/assets/Gambar5.jpg";
 
 const Tim = () => {
   const { data } = useTimStore();
@@ -14,6 +15,7 @@ const Tim = () => {
         titleOrange="LPM ITENAS"
         badge="Profil"
         subtitle="Struktur organisasi dan tim pengelola Lembaga Penjaminan Mutu Institut Teknologi Nasional Bandung"
+        bgImage={heroBg}
       />
 
       {/* Struktur Organisasi */}

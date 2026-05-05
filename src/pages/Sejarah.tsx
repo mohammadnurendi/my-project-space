@@ -2,6 +2,7 @@ import HeroSection from "@/components/HeroSection";
 import { Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSejarahStore } from "@/data/profilStore";
+import heroBg from "@/assets/Gambar2.jpg";
 
 const Sejarah = () => {
   const { data } = useSejarahStore();
@@ -14,6 +15,7 @@ const Sejarah = () => {
         titleOrange="LPM ITENAS"
         badge="Profil"
         subtitle="Perjalanan panjang Lembaga Penjaminan Mutu Institut Teknologi Nasional Bandung"
+        bgImage={heroBg}
       />
 
       <section className="py-20 bg-background">
