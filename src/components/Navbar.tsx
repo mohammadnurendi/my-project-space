@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, LogIn, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import logoLpm from "@/assets/logo-lpm.png";
 
 const profileLinks = [
   { to: "/sejarah", label: "Sejarah" },

@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logoLpm from "@/assets/logo-lpm.png";
 
 const navLinks = [
   { label: "Beranda", path: "/" },
