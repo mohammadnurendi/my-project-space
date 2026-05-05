@@ -15,8 +15,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import FaqAccordion, { FaqItem } from "@/components/FaqAccordion";
+import ParallaxBg from "@/components/ParallaxBg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import heroBg from "@/assets/Gambar1.jpg";
 
 const documents = [
   { title: "Dokumen Pedoman", sub: "Sistem Penjaminan Mutu", bg: "bg-blue-900", Icon: FileText },
@@ -107,7 +109,8 @@ const Home = () => {
               backgroundSize: "32px 32px",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-primary/40" />
+          <ParallaxBg src={heroBg} speed={0.35} opacity={0.35} />
+          <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/80 to-primary/40" />
           {/* Animated blobs */}
           <div className="absolute -top-20 -right-20 w-[28rem] h-[28rem] bg-primary/20 rounded-full blur-3xl animate-pulse" />
           <div

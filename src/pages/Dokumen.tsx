@@ -10,6 +10,8 @@ import {
   type Cover, type DocumentItem,
 } from "@/data/dokumenStore";
 import { toast } from "sonner";
+import ParallaxBg from "@/components/ParallaxBg";
+import heroBg from "@/assets/Gambar7.jpg";
 
 type View =
   | { kind: "covers" }
@@ -63,6 +65,7 @@ const Dokumen = () => {
     <div className="min-h-screen bg-surface">
       {/* Hero */}
       <section className="relative overflow-hidden pt-16 bg-foreground">
+        <ParallaxBg src={heroBg} speed={0.35} opacity={0.35} />
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -70,7 +73,7 @@ const Dokumen = () => {
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/95 to-primary/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/80 to-primary/30" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20">
           <div className="animate-fade-up flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6">
             <div>

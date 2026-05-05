@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 interface HeroSectionProps {
   titleBlack: string;
   titleOrange?: string;
@@ -7,12 +9,25 @@ interface HeroSectionProps {
 }
 
 const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: HeroSectionProps) => {
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => setOffset(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <section className="relative overflow-hidden pt-16">
-      {/* Background */}
+      {/* Parallax Background */}
       <div className="absolute inset-0 bg-foreground">
         {bgImage && (
-          <img src={bgImage} alt="" className="w-full h-full object-cover opacity-30" />
+          <img
+            src={bgImage}
+            alt=""
+            className="absolute inset-0 w-full h-[120%] object-cover opacity-40 will-change-transform"
+            style={{ transform: `translateY(${offset * 0.4}px) scale(1.05)` }}
+          />
         )}
         <div
           className="absolute inset-0 opacity-10"
@@ -22,7 +37,7 @@ const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: Hero
             backgroundSize: "32px 32px",
           }}
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-foreground via-foreground/90 to-primary/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/75 to-primary/40" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
@@ -39,7 +54,7 @@ const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: Hero
           </h1>
           {subtitle && (
             <p
-              className="mt-4 text-background/60 text-lg max-w-xl animate-fade-up"
+              className="mt-4 text-background/70 text-lg max-w-xl animate-fade-up"
               style={{ animationDelay: "200ms" }}
             >
               {subtitle}
@@ -48,7 +63,6 @@ const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: Hero
         </div>
       </div>
 
-      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent" />
     </section>
   );

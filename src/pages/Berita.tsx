@@ -5,6 +5,8 @@ import {
   Newspaper, TrendingUp, BookOpen, Megaphone,
 } from "lucide-react";
 import { useBeritaStore, type BeritaItem as StoreBeritaItem } from "@/data/beritaStore";
+import ParallaxBg from "@/components/ParallaxBg";
+import heroBg from "@/assets/Gambar6.jpg";
 
 /* ─── Types (re-exported from store untuk kompat) ───────── */
 export type BeritaItem = StoreBeritaItem;
@@ -152,6 +154,8 @@ const Berita = () => {
 
       {/* ── Hero ── */}
       <section className="relative bg-foreground overflow-hidden pt-24 pb-16 md:pt-32 md:pb-20">
+        <ParallaxBg src={heroBg} speed={0.35} opacity={0.35} />
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/80 to-primary/30" />
         {/* Decorative pattern */}
         <div className="absolute inset-0 opacity-[0.04]"
           style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "32px 32px" }}

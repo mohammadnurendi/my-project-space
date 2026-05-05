@@ -3,6 +3,7 @@ import Timeline, { TimelineItem } from "@/components/Timeline";
 import { ChevronRight, Ruler, Settings, BarChart3, Search, CheckCircle2, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRoadMapStore } from "@/data/profilStore";
+import heroBg from "@/assets/Gambar4.jpg";
 
 const ICONS: Record<string, React.ElementType> = {
   Standar: Ruler, Pelaksanaan: Settings, Monitoring: BarChart3,
@@ -22,6 +23,7 @@ const RoadMap = () => {
         titleOrange="LPM ITENAS"
         badge="Profil"
         subtitle="Rencana pengembangan dan tahapan pencapaian sistem penjaminan mutu Itenas"
+        bgImage={heroBg}
       />
 
       <section className="py-20 bg-background">

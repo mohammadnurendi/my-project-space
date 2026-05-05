@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { ChevronDown, LogIn, LogOut, Menu, User as UserIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import logoLpm from "@/assets/logo-lpm.png";
 
 const profileLinks = [
   { to: "/sejarah", label: "Sejarah" },
@@ -73,15 +74,7 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 group shrink-0">
-            <div className="flex items-center">
-              <span className="text-2xl font-black text-primary tracking-tight">LPM</span>
-              <span className="text-2xl font-black text-foreground tracking-tight">itenas</span>
-            </div>
-            <div className="hidden sm:block border-l border-border pl-2 ml-1">
-              <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest leading-tight">
-                Lembaga<br />Penjaminan Mutu
-              </p>
-            </div>
+            <img src={logoLpm} alt="LPM Itenas" className="h-9 sm:h-10 w-auto" />
           </Link>
 
           {/* Desktop Nav */}

@@ -1,6 +1,7 @@
 import HeroSection from "@/components/HeroSection";
 import { Eye, ClipboardList, Check, BarChart3 } from "lucide-react";
 import { useVisiMisiStore } from "@/data/profilStore";
+import heroBg from "@/assets/Gambar3.jpg";
 
 const VisiMisi = () => {
   const { data } = useVisiMisiStore();
@@ -12,6 +13,7 @@ const VisiMisi = () => {
         titleOrange="LPM ITENAS"
         badge="Profil"
         subtitle="Komitmen kami dalam membangun sistem penjaminan mutu yang profesional dan berkesinambungan"
+        bgImage={heroBg}
       />
 
       <section className="py-20 bg-background">
