@@ -25,13 +25,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-background/10">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl font-black text-primary">LPM</span>
-              <span className="text-2xl font-black text-background">itenas</span>
+            <div className="mb-4 bg-background/95 rounded-xl p-3 inline-block">
+              <img src={logoLpm} alt="LPM Itenas" className="h-10 w-auto" />
             </div>
-            <p className="text-xs font-semibold text-background/50 uppercase tracking-widest mb-4">
-              Lembaga Penjaminan Mutu
-            </p>
             <p className="text-sm text-background/60 leading-relaxed">
               Jl. PH.H. Mustofa No.23 Bandung, 40124 Indonesia
             </p>

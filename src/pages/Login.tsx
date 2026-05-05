@@ -46,13 +46,9 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md bg-card rounded-3xl border border-border shadow-sm p-8 sm:p-10">
           {/* Logo */}
-          <Link to="/" className="flex items-center justify-center gap-1 mb-2">
-            <span className="text-3xl font-black text-primary tracking-tight">LPM</span>
-            <span className="text-3xl font-black text-foreground tracking-tight">itenas</span>
+          <Link to="/" className="flex items-center justify-center mb-6">
+            <img src={logoLpm} alt="LPM Itenas" className="h-14 w-auto" />
           </Link>
-          <p className="text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.25em] mb-8">
-            Lembaga Penjaminan Mutu
-          </p>
 
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div>
