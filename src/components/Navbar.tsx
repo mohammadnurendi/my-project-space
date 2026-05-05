@@ -203,19 +203,21 @@ const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-4 space-y-1 animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
-          {isAuthenticated && (
-            <div className="flex items-center gap-3 mb-3 p-3 rounded-2xl bg-accent/60 border border-primary/10">
-              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                <UserIcon className="w-4 h-4" />
+          {isAuthenticated && (() => {
+            const displayName = email?.split("@")[0] ?? "Pengguna";
+            const roleLabel = userRole === "admin" ? "Admin LPM ITENAS" : "User LPM ITENAS";
+            return (
+              <div className="flex items-center gap-3 mb-3 p-3 rounded-2xl bg-accent/60 border border-primary/10">
+                <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold ring-2 ring-primary/20">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-foreground capitalize truncate">{displayName}</p>
+                  <p className="text-[11px] text-muted-foreground">{roleLabel}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  Login sebagai
-                </p>
-                <p className="text-sm font-semibold text-foreground truncate">{email}</p>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           <NavLink
             to="/"
