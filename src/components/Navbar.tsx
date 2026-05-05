@@ -155,23 +155,29 @@ const Navbar = () => {
           {/* Auth button (desktop) */}
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
-              <div className="flex items-center gap-2">
-                <div className="hidden lg:flex items-center gap-2 bg-accent/60 border border-primary/10 rounded-full pl-1.5 pr-3 py-1">
-                  <div className="w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                    <UserIcon className="w-3.5 h-3.5" />
+              (() => {
+                const displayName = email?.split("@")[0] ?? "Pengguna";
+                const roleLabel = userRole === "admin" ? "Admin LPM ITENAS" : "User LPM ITENAS";
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="text-right hidden sm:block leading-tight">
+                      <p className="text-sm font-bold text-foreground capitalize">{displayName}</p>
+                      <p className="text-[11px] text-muted-foreground">{roleLabel}</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold ring-2 ring-primary/20">
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
+                    <button
+                      onClick={handleLogout}
+                      className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-3 py-2 rounded-lg hover:bg-muted"
+                      title="Logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Keluar
+                    </button>
                   </div>
-                  <span className="text-xs font-semibold text-foreground/80 max-w-[140px] truncate">
-                    {email}
-                  </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-4 py-2 rounded-full text-sm font-semibold transition-all duration-200 hover:shadow-lg active:scale-95"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Logout
-                </button>
-              </div>
+                );
+              })()
             ) : (
               <button
                 onClick={() => navigate("/login")}
@@ -197,19 +203,21 @@ const Navbar = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-4 space-y-1 animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
-          {isAuthenticated && (
-            <div className="flex items-center gap-3 mb-3 p-3 rounded-2xl bg-accent/60 border border-primary/10">
-              <div className="w-9 h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
-                <UserIcon className="w-4 h-4" />
+          {isAuthenticated && (() => {
+            const displayName = email?.split("@")[0] ?? "Pengguna";
+            const roleLabel = userRole === "admin" ? "Admin LPM ITENAS" : "User LPM ITENAS";
+            return (
+              <div className="flex items-center gap-3 mb-3 p-3 rounded-2xl bg-accent/60 border border-primary/10">
+                <div className="w-10 h-10 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold ring-2 ring-primary/20">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-foreground capitalize truncate">{displayName}</p>
+                  <p className="text-[11px] text-muted-foreground">{roleLabel}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  Login sebagai
-                </p>
-                <p className="text-sm font-semibold text-foreground truncate">{email}</p>
-              </div>
-            </div>
-          )}
+            );
+          })()}
 
           <NavLink
             to="/"
