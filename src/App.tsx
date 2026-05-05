@@ -43,18 +43,17 @@ const App = () => (
               <Route path="/tim" element={<Tim />} />
               <Route path="/berita" element={<Berita />} />
               <Route path="/berita/:id" element={<BeritaDetail />} />
+              <Route
+                path="/dokumen"
+                element={
+                  <ProtectedRoute allowedRole="user">
+                    <Dokumen />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             <Route path="/login" element={<Login />} />
-
-            <Route
-              path="/dokumen"
-              element={
-                <ProtectedRoute allowedRole="user">
-                  <Dokumen />
-                </ProtectedRoute>
-              }
-            />
             <Route
               path="/admin"
               element={
