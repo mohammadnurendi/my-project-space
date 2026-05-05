@@ -15,8 +15,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import FaqAccordion, { FaqItem } from "@/components/FaqAccordion";
+import ParallaxBg from "@/components/ParallaxBg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import heroBg from "@/assets/Gambar1.jpg";
 
 const documents = [
   { title: "Dokumen Pedoman", sub: "Sistem Penjaminan Mutu", bg: "bg-blue-900", Icon: FileText },
