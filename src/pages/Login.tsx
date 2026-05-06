@@ -15,7 +15,7 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -25,7 +25,7 @@ const Login = () => {
     }
 
     setSubmitting(true);
-    const result = login(email, password);
+    const result = await login(email, password);
     setSubmitting(false);
 
     if (!result.success) {
