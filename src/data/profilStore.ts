@@ -16,24 +16,12 @@ export type SejarahData = {
 };
 
 const SEJARAH_DEFAULT: SejarahData = {
-  intro:
-    "Keberadaan Lembaga Penjaminan Mutu (LPM) dalam struktur organisasi Itenas telah ditetapkan sejak tahun 2003 dalam Statuta Itenas, sebagai tindak lanjut dari keberhasilan empat jurusan yaitu jurusan Teknik Industri, Teknik Sipil, Teknik Mesin dan Teknik Kimia dalam memperoleh hibah Technological and Professional Skills Development Sector Project (TPSDP) dari Dikti pada tahun 2002 dan 2003.",
-  events: [
-    { id: "s1", year: "2003", title: "Penetapan LPM dalam Statuta Itenas", content: "Keberadaan LPM dalam struktur organisasi Itenas ditetapkan dalam Statuta Itenas." },
-    { id: "s2", year: "2005", title: "Pembentukan Resmi LPM", content: "Secara resmi LPM (dahulu UPM) dibentuk pada Juli 2005." },
-    { id: "s3", year: "2006", title: "Hibah ISS-QA dari TPSDP", content: "Pada Juni 2006 sampai Juli 2007 LPM Itenas memperoleh Hibah ISS-QA dari TPSDP." },
-    { id: "s4", year: "2016", title: "Perubahan Struktur Organisasi", content: "Struktur organisasi LPM diubah, terdiri dari Kepala LPM dan dua Wakil Kepala." },
-  ],
-  legalTitle: "Tugas & Wewenang Perguruan Tinggi",
-  legalIntro:
-    "Program penjaminan mutu di Itenas dilaksanakan berdasarkan Permenristekdikti No 62 tahun 2016, BAB III pasal 8 ayat 4 mengenai Tugas dan wewenang, yaitu:",
-  legalTasks: [
-    "Merencanakan, melaksanakan, mengevaluasi, mengendalikan, dan mengembangkan SPMI;",
-    "Menyusun dokumen SPMI yang terdiri atas dokumen kebijakan SPMI, dokumen manual SPMI, dokumen standar dalam SPMI, dan dokumen formulir yang digunakan dalam SPMI;",
-    "Membentuk unit penjaminan mutu atau mengintegrasikan SPMI pada manajemen perguruan tinggi;",
-    "Mengelola Pangkalan Data Pendidikan Tinggi (PD Dikti) pada tingkat perguruan tinggi;",
-  ],
-  legalFooter: "- Permenristekdikti No 62 tahun 2016 BAB III pasal 8 ayat 4 mengenai Tugas dan wewenang",
+  intro: "",
+  events: [],
+  legalTitle: "",
+  legalIntro: "",
+  legalTasks: [],
+  legalFooter: "",
 };
 
 /* ─── Visi & Misi ─────────────────────────────────────────── */
