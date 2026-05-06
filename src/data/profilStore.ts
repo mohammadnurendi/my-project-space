@@ -31,17 +31,9 @@ export type VisiMisiData = {
   sasaran: string[];
 };
 const VISIMISI_DEFAULT: VisiMisiData = {
-  visi:
-    "Menjadi lembaga penjaminan mutu yang profesional, akuntabel dan selalu relevan dengan tuntutan perkembangan dunia pendidikan dan mampu membawa Itenas berperan aktif dalam pembangunan berkelanjutan di lingkup nasional, berlandaskan nilai nilai integritas, kualitas, dan inovasi yang tinggi.",
-  misi: [
-    "Mengembangkan dokumen Sistem Penjaminan Mutu Internal yang relevan dengan tuntutan nasional secara konsisten dan berkesinambungan",
-    "Mendorong terwujudnya Sistem Penjaminan Mutu Internal sebagai budaya pada setiap aras di Itenas",
-  ],
-  sasaran: [
-    "Tersusunnya dokumen SPMI berupa standar, manual, dan formulir : 100 standar",
-    "Terlaksananya Audit Mutu Internal (AMI) pada semua unit kerja secara berkelanjutan",
-    "Terpenuhinya standar pelayanan mahasiswa pada 20 laboratorium dan studio",
-  ],
+  visi: "",
+  misi: [],
+  sasaran: [],
 };
 
 /* ─── Road Map ────────────────────────────────────────────── */
