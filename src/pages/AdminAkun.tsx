@@ -40,13 +40,7 @@ type Account = {
   joinedAt: string;
 };
 
-const seed: Account[] = [
-  { id: "U-001", name: "Admin LPM", email: "admin@lpm.com", role: "admin", status: "Aktif", joinedAt: "01 Jan 2025" },
-  { id: "U-002", name: "Budi Santoso", email: "budi@itenas.ac.id", role: "user", status: "Aktif", joinedAt: "12 Feb 2025" },
-  { id: "U-003", name: "Sinta Dewi", email: "sinta@itenas.ac.id", role: "user", status: "Aktif", joinedAt: "03 Mar 2025" },
-  { id: "U-004", name: "Rahmat Hidayat", email: "rahmat@itenas.ac.id", role: "user", status: "Nonaktif", joinedAt: "20 Mar 2025" },
-  { id: "U-005", name: "Dewi Kartika", email: "dewi@itenas.ac.id", role: "user", status: "Aktif", joinedAt: "08 Apr 2025" },
-];
+const seed: Account[] = [];
 
 const AdminAkun = () => {
   const [accounts, setAccounts] = useState<Account[]>(seed);
