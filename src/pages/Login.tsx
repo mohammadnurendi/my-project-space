@@ -115,12 +115,6 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 pt-5 border-t border-border">
-            <p className="text-[11px] text-muted-foreground text-center leading-relaxed">
-              <span className="font-semibold text-foreground/70">Demo akun:</span><br />
-              admin@lpm.com / 123456 &nbsp;·&nbsp; user@lpm.com / 123456
-            </p>
-          </div>
         </div>
       </div>
     </div>
