@@ -54,46 +54,8 @@ const isoDate = (s: string) => new Date(s).toLocaleDateString("id-ID", {
 });
 
 const DEFAULT: DokumenData = {
-  covers: [
-    { id: "cv-1", title: "Pedoman SPMI", description: "Pedoman umum Sistem Penjaminan Mutu Internal Itenas.", createdAt: now() },
-    { id: "cv-2", title: "Standar & Manual Mutu", description: "Standar dan manual mutu akademik.", createdAt: now() },
-    { id: "cv-3", title: "Formulir & SOP", description: "Formulir resmi dan Standar Operasional Prosedur.", createdAt: now() },
-  ],
-  documents: [
-    {
-      id: "doc-1", coverId: "cv-1", name: "Pedoman SPMI 2025",
-      kegiatan: "Audit Mutu Internal", unit: "LPM", jenis: "Pedoman",
-      status: "Aktif", createdAt: now(),
-      revisions: [
-        { id: "rv-1b", version: "v2.0", fileName: "pedoman-spmi-2025-rev2.pdf", alasanRevisi: "Penyesuaian regulasi terbaru", uploadedAt: now() },
-        { id: "rv-1a", version: "v1.0", fileName: "pedoman-spmi-2025-v1.pdf", alasanRevisi: "Versi awal", uploadedAt: now() },
-      ],
-    },
-    {
-      id: "doc-2", coverId: "cv-1", name: "Pedoman Seminar Nasional",
-      kegiatan: "Seminar", unit: "LPM", jenis: "Pedoman",
-      status: "Aktif", createdAt: now(),
-      revisions: [
-        { id: "rv-2a", version: "v1.0", fileName: "pedoman-seminar.pdf", alasanRevisi: "Versi awal", uploadedAt: now() },
-      ],
-    },
-    {
-      id: "doc-3", coverId: "cv-2", name: "Standar Pendidikan",
-      kegiatan: "Penjaminan Mutu", unit: "Rektorat", jenis: "Standar",
-      status: "Aktif", createdAt: now(),
-      revisions: [
-        { id: "rv-3a", version: "v1.4", fileName: "standar-pendidikan.pdf", alasanRevisi: "Versi awal", uploadedAt: now() },
-      ],
-    },
-    {
-      id: "doc-4", coverId: "cv-3", name: "Formulir Audit Mutu",
-      kegiatan: "Audit Internal", unit: "LPM", jenis: "Formulir",
-      status: "Aktif", createdAt: now(),
-      revisions: [
-        { id: "rv-4a", version: "v3.0", fileName: "formulir-audit.pdf", alasanRevisi: "Versi awal", uploadedAt: now() },
-      ],
-    },
-  ],
+  covers: [],
+  documents: [],
 };
 
 /* ─── Persistence ─────────────────────────────────────────── */

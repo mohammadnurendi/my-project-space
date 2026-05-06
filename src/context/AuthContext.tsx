@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { authApi, type ApiUser } from "@/services/authApi";
+import { TOKEN_KEY } from "@/services/api";
 
 export type UserRole = "user" | "admin";
 
@@ -6,62 +8,69 @@ interface AuthState {
   isAuthenticated: boolean;
   userRole: UserRole | null;
   email: string | null;
+  name: string | null;
 }
 
 interface AuthContextValue extends AuthState {
-  login: (email: string, password: string) => { success: boolean; role?: UserRole; error?: string };
-  logout: () => void;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<{ success: boolean; role?: UserRole; error?: string }>;
+  logout: () => Promise<void>;
 }
-
-const STORAGE_KEY = "lpm-auth";
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const loadInitial = (): AuthState => {
-  if (typeof window === "undefined") {
-    return { isAuthenticated: false, userRole: null, email: null };
-  }
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { isAuthenticated: false, userRole: null, email: null };
-    const parsed = JSON.parse(raw) as AuthState;
-    if (parsed && typeof parsed === "object" && parsed.isAuthenticated) return parsed;
-  } catch {
-    // ignore
-  }
-  return { isAuthenticated: false, userRole: null, email: null };
-};
+const fromUser = (u: ApiUser): AuthState => ({
+  isAuthenticated: true,
+  userRole: u.role,
+  email: u.email,
+  name: u.name,
+});
+
+const EMPTY: AuthState = { isAuthenticated: false, userRole: null, email: null, name: null };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [state, setState] = useState<AuthState>(loadInitial);
+  const [state, setState] = useState<AuthState>(EMPTY);
+  const [loading, setLoading] = useState(true);
 
+  // Hydrate sesi dari token tersimpan
   useEffect(() => {
-    if (state.isAuthenticated) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      setLoading(false);
+      return;
     }
-  }, [state]);
+    authApi
+      .me()
+      .then((u) => setState(fromUser(u)))
+      .catch(() => {
+        localStorage.removeItem(TOKEN_KEY);
+        setState(EMPTY);
+      })
+      .finally(() => setLoading(false));
+  }, []);
 
-  const login: AuthContextValue["login"] = (email, password) => {
-    const normalized = email.trim().toLowerCase();
-    if (normalized === "admin@lpm.com" && password === "123456") {
-      setState({ isAuthenticated: true, userRole: "admin", email: normalized });
-      return { success: true, role: "admin" };
+  const login: AuthContextValue["login"] = async (email, password) => {
+    try {
+      const { user } = await authApi.login(email.trim().toLowerCase(), password);
+      setState(fromUser(user));
+      return { success: true, role: user.role };
+    } catch (e: any) {
+      return { success: false, error: e?.message ?? "Email atau kata sandi salah." };
     }
-    if (normalized === "user@lpm.com" && password === "123456") {
-      setState({ isAuthenticated: true, userRole: "user", email: normalized });
-      return { success: true, role: "user" };
-    }
-    return { success: false, error: "Email atau kata sandi salah." };
   };
 
-  const logout = () => {
-    setState({ isAuthenticated: false, userRole: null, email: null });
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } finally {
+      setState(EMPTY);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ ...state, login, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ ...state, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 
