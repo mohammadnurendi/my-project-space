@@ -80,7 +80,22 @@ export function toFormData(payload: Record<string, unknown>): FormData {
     if (v instanceof File || v instanceof Blob) {
       fd.append(k, v);
     } else if (Array.isArray(v)) {
-      v.forEach((item, i) => fd.append(`${k}[${i}]`, String(item)));
+      // Kirim array sebagai indexed keys agar Laravel bisa parse.
+      // Array kosong dikirim sebagai null supaya lolos rule nullable|array.
+      if (v.length === 0) {
+        fd.append(k, "");
+      } else {
+        v.forEach((item, i) => {
+          if (item instanceof File || item instanceof Blob) {
+            fd.append(`${k}[${i}]`, item);
+          } else {
+            fd.append(`${k}[${i}]`, String(item));
+          }
+        });
+      }
+    } else if (typeof v === "boolean") {
+      // Boolean harus "1"/"0" agar Laravel boolean validation benar via FormData
+      fd.append(k, v ? "1" : "0");
     } else if (typeof v === "object") {
       fd.append(k, JSON.stringify(v));
     } else {

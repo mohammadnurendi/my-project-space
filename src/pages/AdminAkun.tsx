@@ -1,6 +1,8 @@
-import { useMemo, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Mail, Shield, User as UserIcon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Search, Pencil, Trash2, Mail, Shield, User as UserIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { userApi, type ApiAccount } from "@/services/userApi";
+import type { ApiError } from "@/services/api";
 import AdminLayout from "@/components/AdminLayout";
 import {
   Dialog,
@@ -32,25 +34,48 @@ import {
 import { Button } from "@/components/ui/button";
 
 type Account = {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: "admin" | "user";
-  status: "Aktif" | "Nonaktif";
   joinedAt: string;
 };
 
-const seed: Account[] = [];
+const toAccount = (account: ApiAccount): Account => ({
+  id: account.id,
+  name: account.name,
+  email: account.email,
+  role: account.role,
+  joinedAt: account.created_at
+    ? new Date(account.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
+    : "-",
+});
 
 const AdminAkun = () => {
-  const [accounts, setAccounts] = useState<Account[]>(seed);
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", role: "user" as Account["role"], status: "Aktif" as Account["status"] });
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" as Account["role"] });
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const reload = async () => {
+    setLoading(true);
+    try {
+      const data = await userApi.list();
+      setAccounts(data.map(toAccount));
+    } catch {
+      toast.error("Gagal memuat akun");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { void reload(); }, []);
 
   const filtered = useMemo(() => {
     return accounts.filter((a) => {
@@ -62,45 +87,70 @@ const AdminAkun = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", email: "", role: "user", status: "Aktif" });
+    setForm({ name: "", email: "", password: "", role: "user" });
     setFormOpen(true);
   };
 
   const openEdit = (a: Account) => {
     setEditing(a);
-    setForm({ name: a.name, email: a.email, role: a.role, status: a.status });
+    setForm({ name: a.name, email: a.email, password: "", role: a.role });
     setFormOpen(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.name.trim() || !form.email.trim()) {
       toast.error("Nama dan email wajib diisi");
       return;
     }
-    if (editing) {
-      setAccounts((prev) => prev.map((a) => (a.id === editing.id ? { ...a, ...form } : a)));
-      toast.success("Akun diperbarui", { description: `${form.name} berhasil diperbarui.` });
-    } else {
-      const id = `U-${String(accounts.length + 1).padStart(3, "0")}`;
-      const today = new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
-      setAccounts((prev) => [{ id, ...form, joinedAt: today }, ...prev]);
-      toast.success("Akun ditambahkan", { description: `${form.email} berhasil dibuat.` });
+    if (!editing && form.password.length < 6) {
+      toast.error("Password awal minimal 6 karakter");
+      return;
     }
-    setFormOpen(false);
+
+    setSaving(true);
+    try {
+      if (editing) {
+        const payload = {
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          role: form.role,
+          ...(form.password ? { password: form.password } : {}),
+        };
+        await userApi.update(editing.id, payload);
+        toast.success("Akun diperbarui", { description: `${form.name} berhasil diperbarui.` });
+      } else {
+        await userApi.create({
+          name: form.name.trim(),
+          email: form.email.trim().toLowerCase(),
+          role: form.role,
+          password: form.password,
+        });
+        toast.success("Akun ditambahkan", { description: `${form.email} bisa login dengan password awal.` });
+      }
+      setFormOpen(false);
+      await reload();
+    } catch (error) {
+      const apiErr = error as ApiError;
+      const validation = apiErr.errors ? Object.values(apiErr.errors).flat().join(" ") : apiErr.message;
+      toast.error("Gagal menyimpan akun", { description: validation });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteId) return;
     const a = accounts.find((x) => x.id === deleteId);
-    setAccounts((prev) => prev.filter((x) => x.id !== deleteId));
-    toast.success("Akun dihapus", { description: `${a?.name ?? "Akun"} telah dihapus.` });
-    setDeleteId(null);
-  };
-
-  const toggleStatus = (a: Account) => {
-    const next: Account["status"] = a.status === "Aktif" ? "Nonaktif" : "Aktif";
-    setAccounts((prev) => prev.map((x) => (x.id === a.id ? { ...x, status: next } : x)));
-    toast(`Status diubah ke ${next}`, { description: a.email });
+    try {
+      await userApi.remove(deleteId);
+      toast.success("Akun dihapus", { description: `${a?.name ?? "Akun"} telah dihapus.` });
+      await reload();
+    } catch (error) {
+      const apiErr = error as ApiError;
+      toast.error("Gagal menghapus akun", { description: apiErr.message });
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   return (
@@ -146,15 +196,22 @@ const AdminAkun = () => {
               <th className="px-5 py-3.5 font-semibold">Email</th>
               <th className="px-5 py-3.5 font-semibold">Peran</th>
               <th className="px-5 py-3.5 font-semibold">Bergabung</th>
-              <th className="px-5 py-3.5 font-semibold">Status</th>
               <th className="px-5 py-3.5 font-semibold text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
-              <tr><td colSpan={6} className="px-5 py-12 text-center text-muted-foreground">Tidak ada akun ditemukan.</td></tr>
+            {loading && (
+              <tr>
+                <td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">
+                  <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+                  Memuat akun...
+                </td>
+              </tr>
             )}
-            {filtered.map((a) => (
+            {!loading && filtered.length === 0 && (
+              <tr><td colSpan={5} className="px-5 py-12 text-center text-muted-foreground">Tidak ada akun ditemukan.</td></tr>
+            )}
+            {!loading && filtered.map((a) => (
               <tr key={a.id} className="border-t border-border hover:bg-muted/30 transition-colors">
                 <td className="px-5 py-4">
                   <div className="flex items-center gap-3">
@@ -163,7 +220,7 @@ const AdminAkun = () => {
                     </div>
                     <div>
                       <p className="font-semibold text-foreground">{a.name}</p>
-                      <p className="text-xs text-muted-foreground">{a.id}</p>
+                      <p className="text-xs text-muted-foreground">U-{String(a.id).padStart(3, "0")}</p>
                     </div>
                   </div>
                 </td>
@@ -176,19 +233,11 @@ const AdminAkun = () => {
                 </td>
                 <td className="px-5 py-4 text-muted-foreground">{a.joinedAt}</td>
                 <td className="px-5 py-4">
-                  <button
-                    onClick={() => toggleStatus(a)}
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full transition-colors ${a.status === "Aktif" ? "bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20" : "bg-muted text-muted-foreground hover:bg-muted/80"}`}
-                  >
-                    {a.status}
-                  </button>
-                </td>
-                <td className="px-5 py-4">
                   <div className="flex items-center justify-end gap-1">
                     <button
-                      onClick={() => toast(`Email dikirim ke ${a.email}`)}
+                      onClick={() => toast("Email otomatis belum aktif", { description: `Sampaikan password awal ke ${a.email} melalui kanal resmi.` })}
                       className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                      title="Kirim email"
+                      title="Info email"
                     >
                       <Mail className="w-4 h-4" />
                     </button>
@@ -216,12 +265,18 @@ const AdminAkun = () => {
 
       {/* Mobile cards */}
       <div className="md:hidden space-y-3">
-        {filtered.length === 0 && (
+        {loading && (
+          <div className="bg-card border border-border rounded-2xl p-8 text-center text-muted-foreground text-sm">
+            <Loader2 className="w-5 h-5 animate-spin inline-block mr-2" />
+            Memuat akun...
+          </div>
+        )}
+        {!loading && filtered.length === 0 && (
           <div className="bg-card border border-border rounded-2xl p-8 text-center text-muted-foreground text-sm">
             Tidak ada akun ditemukan.
           </div>
         )}
-        {filtered.map((a) => (
+        {!loading && filtered.map((a) => (
           <div key={a.id} className="bg-card border border-border rounded-2xl p-4 shadow-sm">
             <div className="flex items-start gap-3">
               <div className="w-11 h-11 rounded-full bg-primary/15 text-primary flex items-center justify-center font-bold shrink-0">
@@ -234,17 +289,14 @@ const AdminAkun = () => {
                   <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${a.role === "admin" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
                     {a.role}
                   </span>
-                  <button
-                    onClick={() => toggleStatus(a)}
-                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${a.status === "Aktif" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground"}`}
-                  >
-                    {a.status}
-                  </button>
+                  <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600">
+                    Aktif
+                  </span>
                 </div>
               </div>
             </div>
             <div className="flex items-center justify-end gap-1 mt-3 pt-3 border-t border-border">
-              <button onClick={() => toast(`Email dikirim ke ${a.email}`)} className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><Mail className="w-4 h-4" /></button>
+              <button onClick={() => toast("Email otomatis belum aktif", { description: `Sampaikan password awal ke ${a.email} melalui kanal resmi.` })} className="p-2 rounded-lg hover:bg-muted text-muted-foreground"><Mail className="w-4 h-4" /></button>
               <button onClick={() => openEdit(a)} className="p-2 rounded-lg hover:bg-primary/10 text-primary"><Pencil className="w-4 h-4" /></button>
               <button onClick={() => setDeleteId(a.id)} className="p-2 rounded-lg hover:bg-destructive/10 text-destructive"><Trash2 className="w-4 h-4" /></button>
             </div>
@@ -258,10 +310,13 @@ const AdminAkun = () => {
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Akun" : "Tambah Akun"}</DialogTitle>
             <DialogDescription>
-              {editing ? "Perbarui informasi pengguna." : "Buat akun pengguna baru."}
+              {editing ? "Perbarui informasi pengguna." : "Buat akun pengguna baru dengan password awal."}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-[12px] leading-relaxed text-amber-800">
+              Pengiriman email otomatis belum aktif. Password awal perlu dibuat di form ini, lalu disampaikan ke pengguna melalui kanal resmi.
+            </div>
             <div className="space-y-2">
               <Label htmlFor="aname">Nama Lengkap</Label>
               <Input id="aname" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nama pengguna" />
@@ -270,7 +325,20 @@ const AdminAkun = () => {
               <Label htmlFor="aemail">Email</Label>
               <Input id="aemail" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@itenas.ac.id" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="apassword">{editing ? "Password Baru (opsional)" : "Password Awal"}</Label>
+              <Input
+                id="apassword"
+                type="password"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder={editing ? "Kosongkan jika tidak diubah" : "Minimal 6 karakter"}
+              />
+              <p className="text-[11px] text-muted-foreground">
+                Akun login membutuhkan password. Email otomatis untuk reset/aktivasi belum tersedia.
+              </p>
+            </div>
+            <div className="space-y-2">
               <div className="space-y-2">
                 <Label>Peran</Label>
                 <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as Account["role"] })}>
@@ -281,21 +349,14 @@ const AdminAkun = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v as Account["status"] })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Aktif">Aktif</SelectItem>
-                    <SelectItem value="Nonaktif">Nonaktif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setFormOpen(false)}>Batal</Button>
-            <Button onClick={handleSave}>{editing ? "Simpan Perubahan" : "Tambah"}</Button>
+            <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving}>Batal</Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}
+              {editing ? "Simpan Perubahan" : "Tambah"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

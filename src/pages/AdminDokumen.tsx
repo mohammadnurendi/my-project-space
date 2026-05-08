@@ -24,13 +24,43 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  useDokumenStore, fileToDataUrl, formatDate, latestRevision, countDocs,
-  type Cover, type DocumentItem, type DocStatus,
+  useDokumenStoreApi,
+} from "@/data/dokumenStoreApi";
+import { TOKEN_KEY, type ApiError } from "@/services/api";
+import {
+  formatDate, latestRevision, countDocs,
+  type Cover, type DocumentItem, type DocStatus, type Revision,
 } from "@/data/dokumenStore";
 
-const UNITS = ["LPM", "Fakultas Teknik", "Fakultas Ekonomi", "Fakultas Desain", "Rektorat", "BAAK", "BAUK"];
-const JENIS = ["Pedoman", "Standar", "Manual", "SOP", "Formulir", "Instruksi Kerja"];
-const STATUS_OPTIONS: DocStatus[] = ["Aktif", "Revisi", "Arsip"];
+const STATUS_OPTIONS: DocStatus[] = ["Aktif", "Tidak Aktif"];
+
+async function openRevisionFile(rev: Revision, download = false) {
+  const url = download ? (rev.fileDownloadUrl ?? rev.fileDataUrl) : rev.fileDataUrl;
+  if (!url) {
+    toast("URL tidak tersedia");
+    return;
+  }
+
+  const token = localStorage.getItem(TOKEN_KEY);
+  const res = await fetch(url, {
+    headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+  });
+
+  if (!res.ok) {
+    toast.error("File tidak bisa dibuka");
+    return;
+  }
+
+  const blobUrl = URL.createObjectURL(await res.blob());
+  if (download) {
+    const a = document.createElement("a");
+    a.href = blobUrl;
+    a.download = rev.fileName;
+    a.click();
+  } else {
+    window.open(blobUrl, "_blank");
+  }
+}
 
 /* ─────────────────────────────────────────────────────────── */
 
@@ -40,7 +70,7 @@ type View =
   | { kind: "doc"; docId: string };
 
 const AdminDokumen = () => {
-  const store = useDokumenStore();
+  const store = useDokumenStoreApi();
   const { data } = store;
 
   const [view, setView] = useState<View>({ kind: "covers" });
@@ -51,6 +81,17 @@ const AdminDokumen = () => {
   const [docDlg, setDocDlg] = useState<{ open: boolean; coverId?: string; editing?: DocumentItem }>({ open: false });
   const [revDlg, setRevDlg] = useState<{ open: boolean; docId?: string }>({ open: false });
   const [deleteDlg, setDeleteDlg] = useState<{ kind: "cover" | "doc" | "rev"; id: string; parentId?: string } | null>(null);
+
+  const showApiError = (title: string, error: unknown) => {
+    const apiErr = error as ApiError;
+    const validation = apiErr.errors
+      ? Object.values(apiErr.errors).flat().filter(Boolean).join(" ")
+      : undefined;
+
+    toast.error(title, {
+      description: validation || apiErr.message || "Terjadi kesalahan saat menghubungi server.",
+    });
+  };
 
   const currentCover = view.kind === "docs" ? data.covers.find((c) => c.id === view.coverId) : undefined;
   const currentDoc = view.kind === "doc" ? data.documents.find((d) => d.id === view.docId) : undefined;
@@ -80,22 +121,26 @@ const AdminDokumen = () => {
   }, [data.documents, view, query]);
 
   /* ── Delete handler ─── */
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deleteDlg) return;
-    if (deleteDlg.kind === "cover") {
-      store.removeCover(deleteDlg.id);
-      toast.success("Kategori dihapus", { description: "Termasuk semua dokumen di dalamnya." });
-    } else if (deleteDlg.kind === "doc") {
-      store.removeDocument(deleteDlg.id);
-      toast.success("Dokumen dihapus");
-      if (view.kind === "doc" && view.docId === deleteDlg.id) {
-        setView({ kind: "docs", coverId: deleteDlg.parentId! });
+    try {
+      if (deleteDlg.kind === "cover") {
+        await store.removeCover(deleteDlg.id);
+        toast.success("Kategori dihapus", { description: "Termasuk semua dokumen di dalamnya." });
+      } else if (deleteDlg.kind === "doc") {
+        await store.removeDocument(deleteDlg.id);
+        toast.success("Dokumen dihapus");
+        if (view.kind === "doc" && view.docId === deleteDlg.id) {
+          setView({ kind: "docs", coverId: deleteDlg.parentId! });
+        }
+      } else if (deleteDlg.kind === "rev") {
+        await store.removeRevision(deleteDlg.parentId!, deleteDlg.id);
+        toast.success("Revisi dihapus");
       }
-    } else if (deleteDlg.kind === "rev") {
-      store.removeRevision(deleteDlg.parentId!, deleteDlg.id);
-      toast.success("Revisi dihapus");
+      setDeleteDlg(null);
+    } catch (error) {
+      showApiError("Gagal menghapus data", error);
     }
-    setDeleteDlg(null);
   };
 
   /* ─── Header configuration ─── */
@@ -115,7 +160,7 @@ const AdminDokumen = () => {
     );
 
   return (
-    <AdminLayout title="Dokumen Pedoman" headerRight={headerRight}>
+    <AdminLayout title="Dokumen Lembaga Penjaminan Mutu" headerRight={headerRight}>
       {/* Breadcrumb */}
       <Breadcrumbs
         view={view}
@@ -132,7 +177,7 @@ const AdminDokumen = () => {
             { label: "Total Kategori", value: data.covers.length, color: "text-foreground" },
             { label: "Total Dokumen", value: data.documents.length, color: "text-primary" },
             { label: "Aktif", value: data.documents.filter((d) => d.status === "Aktif").length, color: "text-emerald-600" },
-            { label: "Revisi", value: data.documents.filter((d) => d.status === "Revisi").length, color: "text-blue-600" },
+            { label: "Tidak Aktif", value: data.documents.filter((d) => d.status === "Tidak Aktif").length, color: "text-muted-foreground" },
           ].map((s) => (
             <div key={s.label} className="bg-card border border-border rounded-2xl px-4 py-3.5 shadow-sm">
               <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{s.label}</p>
@@ -185,6 +230,14 @@ const AdminDokumen = () => {
           cover={currentDocCover}
           onAddRevision={() => setRevDlg({ open: true, docId: currentDoc.id })}
           onDeleteRevision={(revId) => setDeleteDlg({ kind: "rev", id: revId, parentId: currentDoc.id })}
+          onToggleDocumentStatus={async (status) => {
+            await store.updateDocument(currentDoc.id, { status });
+            toast.success(status === "Aktif" ? "Dokumen induk diaktifkan" : "Dokumen induk dinonaktifkan");
+          }}
+          onToggleRevisionStatus={async (revId, status) => {
+            await store.updateRevision(currentDoc.id, revId, { status });
+            toast.success(status === "Aktif" ? "Revisi diaktifkan" : "Revisi dinonaktifkan");
+          }}
         />
       )}
 
@@ -193,15 +246,28 @@ const AdminDokumen = () => {
         open={coverDlg.open}
         editing={coverDlg.editing}
         onClose={() => setCoverDlg({ open: false })}
-        onSave={(payload) => {
-          if (coverDlg.editing) {
-            store.updateCover(coverDlg.editing.id, payload);
-            toast.success("Kategori diperbarui");
-          } else {
-            store.addCover(payload);
-            toast.success("Kategori ditambahkan");
+        onSave={async (payload) => {
+          try {
+            if (coverDlg.editing) {
+              await store.updateCover(coverDlg.editing.id, {
+                title: payload.title,
+                description: payload.description,
+                image: payload.existingImage,
+                imageFile: payload.imageFile,
+              });
+              toast.success("Kategori diperbarui");
+            } else {
+              await store.addCover({
+                title: payload.title,
+                description: payload.description,
+                imageFile: payload.imageFile,
+              });
+              toast.success("Kategori ditambahkan");
+            }
+            setCoverDlg({ open: false });
+          } catch (error) {
+            showApiError("Gagal menyimpan kategori", error);
           }
-          setCoverDlg({ open: false });
         }}
       />
 
@@ -212,25 +278,27 @@ const AdminDokumen = () => {
         covers={data.covers}
         onClose={() => setDocDlg({ open: false })}
         onSave={async (payload, file) => {
-          if (docDlg.editing) {
-            const { initialRevision, ...rest } = payload;
-            store.updateDocument(docDlg.editing.id, rest);
-            toast.success("Dokumen diperbarui");
-          } else {
-            let fileDataUrl: string | undefined;
-            if (file) fileDataUrl = await fileToDataUrl(file);
-            store.addDocument({
-              ...payload,
-              initialRevision: {
-                ...payload.initialRevision,
-                fileName: file?.name ?? payload.initialRevision.fileName,
-                fileSize: file?.size,
-                fileDataUrl,
-              },
-            });
-            toast.success("Dokumen ditambahkan", { description: payload.name });
+          try {
+            if (docDlg.editing) {
+              const { initialRevision, ...rest } = payload;
+              await store.updateDocument(docDlg.editing.id, rest);
+              toast.success("Dokumen diperbarui");
+            } else {
+              await store.addDocument({
+                ...payload,
+                initialRevision: {
+                  ...payload.initialRevision,
+                  fileName: file?.name ?? payload.initialRevision.fileName,
+                  fileSize: file?.size,
+                  file,
+                },
+              });
+              toast.success("Dokumen ditambahkan", { description: payload.name });
+            }
+            setDocDlg({ open: false });
+          } catch (error) {
+            showApiError("Gagal menyimpan dokumen", error);
           }
-          setDocDlg({ open: false });
         }}
       />
 
@@ -240,16 +308,18 @@ const AdminDokumen = () => {
         onClose={() => setRevDlg({ open: false })}
         onSave={async (payload, file) => {
           if (!revDlg.docId) return;
-          let fileDataUrl: string | undefined;
-          if (file) fileDataUrl = await fileToDataUrl(file);
-          store.addRevision(revDlg.docId, {
-            ...payload,
-            fileName: file?.name ?? payload.fileName,
-            fileSize: file?.size,
-            fileDataUrl,
-          });
-          toast.success("Revisi disimpan", { description: `Versi ${payload.version}` });
-          setRevDlg({ open: false });
+          try {
+            await store.addRevision(revDlg.docId, {
+              ...payload,
+              fileName: file?.name ?? payload.fileName,
+              fileSize: file?.size,
+              file,
+            });
+            toast.success("Revisi disimpan", { description: `Versi ${payload.version}` });
+            setRevDlg({ open: false });
+          } catch (error) {
+            showApiError("Gagal menyimpan revisi", error);
+          }
         }}
       />
 
@@ -503,12 +573,14 @@ function DocsList({
    DOC DETAIL with REVISION HISTORY
    ═══════════════════════════════════════════════════════════ */
 function DocDetail({
-  doc, cover, onAddRevision, onDeleteRevision,
+  doc, cover, onAddRevision, onDeleteRevision, onToggleDocumentStatus, onToggleRevisionStatus,
 }: {
   doc: DocumentItem;
   cover: Cover;
   onAddRevision: () => void;
   onDeleteRevision: (revId: string) => void;
+  onToggleDocumentStatus: (status: DocStatus) => void;
+  onToggleRevisionStatus: (revId: string, status: DocStatus) => void;
 }) {
   const last = latestRevision(doc);
   return (
@@ -529,7 +601,28 @@ function DocDetail({
               <StatusBadge status={doc.status} />
             </div>
           </div>
-          <Button onClick={onAddRevision} className="rounded-xl gap-2 shrink-0 hidden sm:inline-flex">
+          <div className="hidden sm:flex items-center gap-2 shrink-0">
+            <Button
+              variant="outline"
+              onClick={() => onToggleDocumentStatus(doc.status === "Aktif" ? "Tidak Aktif" : "Aktif")}
+              className="rounded-xl"
+            >
+              {doc.status === "Aktif" ? "Nonaktifkan Dokumen" : "Aktifkan Dokumen"}
+            </Button>
+            <Button onClick={onAddRevision} className="rounded-xl gap-2">
+              <GitBranch className="w-4 h-4" />Tambah Revisi
+            </Button>
+          </div>
+        </div>
+        <div className="sm:hidden mt-4 grid grid-cols-1 gap-2">
+          <Button
+            variant="outline"
+            onClick={() => onToggleDocumentStatus(doc.status === "Aktif" ? "Tidak Aktif" : "Aktif")}
+            className="rounded-xl"
+          >
+            {doc.status === "Aktif" ? "Nonaktifkan Dokumen" : "Aktifkan Dokumen"}
+          </Button>
+          <Button onClick={onAddRevision} className="rounded-xl gap-2">
             <GitBranch className="w-4 h-4" />Tambah Revisi
           </Button>
         </div>
@@ -543,6 +636,7 @@ function DocDetail({
               <CheckCircle2 className="w-3 h-3" />Versi Terbaru
             </span>
             <span className="text-xs text-muted-foreground font-mono">{last.version}</span>
+            <StatusBadge status={last.status} />
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
             <div className="flex-1">
@@ -556,10 +650,10 @@ function DocDetail({
               )}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => toast(`Pratinjau: ${last.fileName}`)}>
+              <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => void openRevisionFile(last)}>
                 <Eye className="w-4 h-4" />Lihat
               </Button>
-              <Button size="sm" className="rounded-xl gap-2" onClick={() => toast.success("Unduhan dimulai", { description: last.fileName })}>
+              <Button size="sm" className="rounded-xl gap-2" onClick={() => void openRevisionFile(last, true)}>
                 <Download className="w-4 h-4" />Unduh
               </Button>
             </div>
@@ -596,6 +690,7 @@ function DocDetail({
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-bold text-sm text-foreground font-mono">{rev.version}</span>
+                        <StatusBadge status={rev.status} />
                         {isLatest && (
                           <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500 text-white px-1.5 py-0.5 rounded">Terbaru</span>
                         )}
@@ -613,8 +708,11 @@ function DocDetail({
                       )}
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <button onClick={() => toast(`Pratinjau: ${rev.fileName}`)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground" title="Lihat"><Eye className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => toast.success("Unduhan dimulai", { description: rev.fileName })} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground" title="Unduh"><Download className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => onToggleRevisionStatus(rev.id, rev.status === "Aktif" ? "Tidak Aktif" : "Aktif")} className="px-2 py-1.5 rounded-lg hover:bg-muted text-[11px] font-semibold text-muted-foreground hover:text-primary" title={rev.status === "Aktif" ? "Nonaktifkan revisi" : "Aktifkan revisi"}>
+                        {rev.status === "Aktif" ? "Nonaktifkan" : "Aktifkan"}
+                      </button>
+                      <button onClick={() => void openRevisionFile(rev)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground" title="Lihat"><Eye className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => void openRevisionFile(rev, true)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground" title="Unduh"><Download className="w-3.5 h-3.5" /></button>
                       {doc.revisions.length > 1 && (
                         <button onClick={() => onDeleteRevision(rev.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive" title="Hapus revisi"><Trash2 className="w-3.5 h-3.5" /></button>
                       )}
@@ -639,11 +737,12 @@ function CoverDialog({
   open: boolean;
   editing?: Cover;
   onClose: () => void;
-  onSave: (payload: { title: string; description?: string; image?: string }) => void;
+  onSave: (payload: { title: string; description?: string; imageFile?: File; existingImage?: string }) => void;
 }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [image, setImage] = useState<string | undefined>();
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | undefined>();
   const [error, setError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -652,22 +751,26 @@ function CoverDialog({
     if (open) {
       setTitle(editing?.title ?? "");
       setDesc(editing?.description ?? "");
-      setImage(editing?.image);
+      setImageFile(null);
+      setImagePreview(editing?.image);
       setError("");
     }
     return null;
   }, [open, editing]);
 
-  const handleImage = async (f: File | null) => {
+  const handleImage = (f: File | null) => {
     if (!f) return;
     if (!f.type.startsWith("image/")) { toast.error("File harus gambar"); return; }
     if (f.size > 2 * 1024 * 1024) { toast.error("Maks 2MB"); return; }
-    setImage(await fileToDataUrl(f));
+    setImageFile(f);
+    const reader = new FileReader();
+    reader.onload = (e) => setImagePreview(e.target?.result as string);
+    reader.readAsDataURL(f);
   };
 
   const submit = () => {
     if (!title.trim()) { setError("Judul kategori wajib diisi"); return; }
-    onSave({ title: title.trim(), description: desc.trim() || undefined, image });
+    onSave({ title: title.trim(), description: desc.trim() || undefined, imageFile: imageFile ?? undefined, existingImage: editing?.image });
   };
 
   return (
@@ -688,12 +791,12 @@ function CoverDialog({
               onClick={() => fileRef.current?.click()}
               className="aspect-[16/9] rounded-xl border-2 border-dashed border-border hover:border-primary/50 cursor-pointer overflow-hidden bg-muted/30 flex items-center justify-center relative group transition-colors"
             >
-              {image ? (
+              {imagePreview ? (
                 <>
-                  <img src={image} alt="Kategori" className="w-full h-full object-cover" />
+                  <img src={imagePreview} alt="Kategori" className="w-full h-full object-cover" />
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); setImage(undefined); }}
+                    onClick={(e) => { e.stopPropagation(); setImageFile(null); setImagePreview(undefined); }}
                     className="absolute top-2 right-2 w-7 h-7 rounded-full bg-foreground/70 text-background opacity-0 group-hover:opacity-100 flex items-center justify-center"
                   >
                     <X className="w-3.5 h-3.5" />
@@ -828,12 +931,12 @@ function DocumentDialog({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <Label className="text-[13px] font-semibold">Jenis Dokumen</Label>
-              <Select value={form.jenis} onValueChange={(v) => setForm({ ...form, jenis: v })}>
-                <SelectTrigger className="rounded-lg h-10 mt-1.5"><SelectValue placeholder="Pilih jenis" /></SelectTrigger>
-                <SelectContent>
-                  {JENIS.map((j) => <SelectItem key={j} value={j}>{j}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Input
+                value={form.jenis}
+                onChange={(e) => setForm({ ...form, jenis: e.target.value })}
+                className="rounded-lg h-10 mt-1.5"
+                placeholder="Contoh: Standar, Manual, Formulir"
+              />
             </div>
             <div>
               <Label className="text-[13px] font-semibold">Status <span className="text-destructive">*</span></Label>
@@ -854,12 +957,12 @@ function DocumentDialog({
             </div>
             <div>
               <Label className="text-[13px] font-semibold">Unit <span className="text-destructive">*</span></Label>
-              <Select value={form.unit} onValueChange={(v) => setForm({ ...form, unit: v })}>
-                <SelectTrigger className="rounded-lg h-10 mt-1.5"><SelectValue placeholder="Pilih unit" /></SelectTrigger>
-                <SelectContent>
-                  {UNITS.map((u) => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <Input
+                value={form.unit}
+                onChange={(e) => setForm({ ...form, unit: e.target.value })}
+                className="rounded-lg h-10 mt-1.5"
+                placeholder="Contoh: LPM, Fakultas Teknik, Program Studi"
+              />
               <ErrMsg msg={errors.unit} />
             </div>
           </div>
@@ -888,12 +991,13 @@ function RevisionDialog({
   doc?: DocumentItem;
   onClose: () => void;
   onSave: (
-    payload: { version: string; fileName: string; alasanRevisi: string },
+    payload: { version: string; fileName: string; alasanRevisi: string; status: DocStatus },
     file: File | null
   ) => void;
 }) {
   const [version, setVersion] = useState("");
   const [alasan, setAlasan] = useState("");
+  const [status, setStatus] = useState<DocStatus>("Aktif");
   const [file, setFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -904,6 +1008,7 @@ function RevisionDialog({
       const next = `v${Number(maj) + 1}.0`;
       setVersion(next);
       setAlasan("");
+      setStatus("Aktif");
       setFile(null);
       setErrors({});
     }
@@ -916,7 +1021,7 @@ function RevisionDialog({
     if (!alasan.trim()) e.alasan = "Alasan revisi wajib diisi";
     if (!file) e.file = "File PDF revisi wajib diunggah";
     if (Object.keys(e).length) { setErrors(e); return; }
-    onSave({ version: version.trim(), fileName: file!.name, alasanRevisi: alasan.trim() }, file);
+    onSave({ version: version.trim(), fileName: file!.name, alasanRevisi: alasan.trim(), status }, file);
   };
 
   return (
@@ -949,6 +1054,16 @@ function RevisionDialog({
             <Label className="text-[13px] font-semibold">Alasan Revisi <span className="text-destructive">*</span></Label>
             <Textarea value={alasan} onChange={(e) => setAlasan(e.target.value)} rows={3} placeholder="Jelaskan alasan dilakukan revisi..." className="rounded-lg mt-1.5" />
             <ErrMsg msg={errors.alasan} />
+          </div>
+
+          <div>
+            <Label className="text-[13px] font-semibold">Status Revisi <span className="text-destructive">*</span></Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as DocStatus)}>
+              <SelectTrigger className="rounded-lg h-10 mt-1.5"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              </SelectContent>
+            </Select>
           </div>
 
           <FileDrop file={file} onChange={setFile} error={errors.file} />
@@ -1038,7 +1153,6 @@ function FileDrop({
 function StatusBadge({ status }: { status: DocStatus }) {
   const cls =
     status === "Aktif" ? "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20"
-    : status === "Revisi" ? "bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20"
     : "bg-muted text-muted-foreground ring-1 ring-border";
   return <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full ${cls}`}>{status}</span>;
 }

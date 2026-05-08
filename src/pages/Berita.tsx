@@ -1,12 +1,44 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
   Search, Calendar, Tag, Clock, ArrowRight, ChevronRight,
-  Newspaper, TrendingUp, BookOpen, Megaphone,
+  Newspaper, TrendingUp, BookOpen, Megaphone, Loader2,
 } from "lucide-react";
-import { useBeritaStore, type BeritaItem as StoreBeritaItem } from "@/data/beritaStore";
+import { beritaApi, type ApiBerita } from "@/services/beritaApi";
+import type { BeritaItem as StoreBeritaItem } from "@/data/beritaStore";
 import ParallaxBg from "@/components/ParallaxBg";
 import heroBg from "@/assets/Gambar6.jpg";
+
+/* ─── Adapter: ApiBerita → BeritaItem shape yang dipakai JSX ── */
+function toBeritaItem(b: ApiBerita): BeritaItem {
+  return {
+    id: String(b.id),
+    judul: b.judul,
+    kategori: b.kategori,
+    ringkasan: b.ringkasan,
+    isi: b.isi,
+    penulis: b.penulis,
+    tanggal: b.tanggal,
+    gambar: b.gambar_url ?? "",
+    gambarUrls: b.gambar_urls ?? (b.gambar_url ? [b.gambar_url] : []),
+    featured: b.featured,
+    tags: b.tags ?? [],
+  };
+}
+
+function useBeritaApi() {
+  const [list, setList] = useState<BeritaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    beritaApi.list()
+      .then((data) => setList(data.map(toBeritaItem)))
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  return { list, loading };
+}
 
 /* ─── Types (re-exported from store untuk kompat) ───────── */
 export type BeritaItem = StoreBeritaItem;
@@ -50,16 +82,19 @@ function StatBadge({ icon: Icon, label, val }: { icon: React.ElementType; label:
 /* ─── Featured card ─────────────────────────────────────── */
 function FeaturedCard({ berita, big = false }: { berita: BeritaItem; big?: boolean }) {
   const KatIcon = kategoriIcon(berita.kategori);
+  const image = berita.gambarUrls?.[0] ?? berita.gambar;
   return (
     <Link
       to={`/berita/${berita.id}`}
       className={`group relative overflow-hidden rounded-3xl flex flex-col justify-end bg-foreground ${big ? "min-h-[400px] md:min-h-[460px]" : "min-h-[300px]"}`}
     >
-      <img
-        src={berita.gambar}
-        alt={berita.judul}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-      />
+      {image && (
+        <img
+          src={image}
+          alt={berita.judul}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+        />
+      )}
       <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
       <div className="relative p-6 md:p-7 space-y-3">
         <div className="flex items-center gap-2">
@@ -88,17 +123,30 @@ function FeaturedCard({ berita, big = false }: { berita: BeritaItem; big?: boole
 /* ─── Regular card ──────────────────────────────────────── */
 function BeritaCard({ berita }: { berita: BeritaItem }) {
   const KatIcon = kategoriIcon(berita.kategori);
+  const images = berita.gambarUrls?.length ? berita.gambarUrls : (berita.gambar ? [berita.gambar] : []);
+  const image = images[0];
   return (
     <Link
       to={`/berita/${berita.id}`}
       className="group bg-card border border-border rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-foreground/5 hover:-translate-y-1 transition-all duration-300 flex flex-col"
     >
       <div className="relative overflow-hidden aspect-[16/9]">
-        <img
-          src={berita.gambar}
-          alt={berita.judul}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={berita.judul}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <Newspaper className="w-8 h-8 text-muted-foreground/40" />
+          </div>
+        )}
+        {images.length > 1 && (
+          <div className="absolute right-3 bottom-3 bg-foreground/75 text-background text-[10px] font-bold px-2 py-1 rounded-full">
+            {images.length} Foto
+          </div>
+        )}
         <div className="absolute top-3 left-3">
           <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${kategoriColor(berita.kategori)}`}>
             <KatIcon className="w-3 h-3" />
@@ -132,7 +180,7 @@ function BeritaCard({ berita }: { berita: BeritaItem }) {
    MAIN PAGE
 ═══════════════════════════════════════════════════════════ */
 const Berita = () => {
-  const { list: seedBerita } = useBeritaStore();
+  const { list: seedBerita, loading } = useBeritaApi();
   const [query, setQuery] = useState("");
   const [aktifKategori, setAktifKategori] = useState("Semua");
 
@@ -180,7 +228,7 @@ const Berita = () => {
 
           {/* Stats */}
           <div className="flex flex-wrap gap-3">
-            <StatBadge icon={Newspaper} label="Total Berita" val={seedBerita.length} />
+            <StatBadge icon={Newspaper} label="Total Berita" val={loading ? "…" : seedBerita.length} />
             <StatBadge icon={TrendingUp} label="Berita Bulan Ini" val={3} />
             <StatBadge icon={Tag} label="Kategori" val={KATEGORI_LIST.length - 1} />
           </div>
@@ -265,7 +313,11 @@ const Berita = () => {
             </div>
           )}
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20 bg-card border border-border rounded-3xl">
               <Newspaper className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
               <p className="text-foreground font-bold text-lg">Tidak ada berita ditemukan</p>

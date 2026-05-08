@@ -4,6 +4,8 @@ import { ChevronDown, LogIn, LogOut, Menu, User as UserIcon, X } from "lucide-re
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import logoLpm from "@/assets/logo-lpm.png";
+import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
+import { toast } from "sonner";
 
 const profileLinks = [
   { to: "/sejarah", label: "Sejarah" },
@@ -16,8 +18,9 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isAuthenticated, userRole, email, logout } = useAuth();
+  const { isAuthenticated, userRole, name, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,6 +48,9 @@ const Navbar = () => {
   const handleLogout = () => {
     logout();
     setMobileOpen(false);
+    toast.success("Berhasil keluar", {
+      description: "Sesi Anda sudah diakhiri dengan aman.",
+    });
     navigate("/", { replace: true });
   };
 
@@ -156,7 +162,7 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               (() => {
-                const displayName = email?.split("@")[0] ?? "Pengguna";
+                const displayName = name?.trim() || "Pengguna";
                 const roleLabel = userRole === "admin" ? "Admin LPM ITENAS" : "User LPM ITENAS";
                 return (
                   <div className="flex items-center gap-3">
@@ -168,7 +174,7 @@ const Navbar = () => {
                       {displayName.charAt(0).toUpperCase()}
                     </div>
                     <button
-                      onClick={handleLogout}
+                      onClick={() => setLogoutOpen(true)}
                       className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-3 py-2 rounded-lg hover:bg-muted"
                       title="Logout"
                     >
@@ -204,7 +210,7 @@ const Navbar = () => {
       {mobileOpen && (
         <div className="md:hidden bg-card border-t border-border px-4 py-4 space-y-1 animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
           {isAuthenticated && (() => {
-            const displayName = email?.split("@")[0] ?? "Pengguna";
+            const displayName = name?.trim() || "Pengguna";
             const roleLabel = userRole === "admin" ? "Admin LPM ITENAS" : "User LPM ITENAS";
             return (
               <div className="flex items-center gap-3 mb-3 p-3 rounded-2xl bg-accent/60 border border-primary/10">
@@ -280,7 +286,7 @@ const Navbar = () => {
           <div className="pt-3">
             {isAuthenticated ? (
               <button
-                onClick={handleLogout}
+                onClick={() => setLogoutOpen(true)}
                 className="w-full flex items-center justify-center gap-2 bg-foreground text-background px-5 py-3 rounded-full text-sm font-semibold active:scale-95 transition-transform"
               >
                 <LogOut className="w-4 h-4" />
@@ -301,6 +307,11 @@ const Navbar = () => {
           </div>
         </div>
       )}
+      <LogoutConfirmDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        onConfirm={handleLogout}
+      />
     </nav>
   );
 };

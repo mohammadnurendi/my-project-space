@@ -28,19 +28,15 @@ const Tim = () => {
             <h2 className="text-3xl font-black text-foreground">
               Struktur Organisasi <span className="text-primary">LPM ITENAS</span>
             </h2>
-            <p className="text-muted-foreground mt-2 text-sm">Berikut ini adalah tim pengelola</p>
           </div>
 
           <div className="animate-fade-up overflow-x-auto pb-4 space-y-2">
-            {/* Head level (kartu tunggal di tengah) */}
             {headLevel && (
-              <>
-                <div className="flex justify-center flex-wrap gap-4">
-                  {headLevel.members.map((m) => (
-                    <OrgCard key={m.id} name={m.name} role={m.role} isHead />
-                  ))}
-                </div>
-              </>
+              <div className="flex justify-center flex-wrap gap-4">
+                {headLevel.members.map((m) => (
+                  <OrgCard key={m.id} name={m.name} role={m.role} isHead />
+                ))}
+              </div>
             )}
 
             {subLevels.map((lvl) => {
@@ -50,16 +46,12 @@ const Tim = () => {
                 cols === 2 ? "grid grid-cols-1 sm:grid-cols-2" :
                 cols === 3 ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3" :
                 "grid grid-cols-2 lg:grid-cols-4";
+
               return (
                 <div key={lvl.id} className="space-y-2">
                   <div className="flex justify-center"><div className="w-0.5 h-6 bg-primary/20" /></div>
                   {lvl.members.length > 1 && (
                     <div className="flex justify-center"><div className="w-3/4 h-0.5 bg-primary/20" /></div>
-                  )}
-                  {lvl.label && (
-                    <p className="text-center text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-2">
-                      {lvl.label}
-                    </p>
                   )}
                   <div className={`${gridClass} gap-4`}>
                     {lvl.members.map((m) => (
@@ -79,9 +71,6 @@ const Tim = () => {
       <section className="py-20 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 animate-fade-up">
-            <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              Tim Pengelola
-            </span>
             <h2 className="text-3xl font-black text-foreground">
               Tim Pengelola <span className="text-primary">LPM ITENAS</span>
             </h2>

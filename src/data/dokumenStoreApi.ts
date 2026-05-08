@@ -31,7 +31,9 @@ const toRevision = (r: ApiRevisi): Revision => ({
   version: r.version,
   fileName: r.file_name,
   fileDataUrl: r.file_url,
+  fileDownloadUrl: r.file_download_url,
   alasanRevisi: r.alasan_revisi,
+  status: (r.status ?? "Aktif") as DocStatus,
   uploadedAt: r.uploaded_at,
 });
 
@@ -80,7 +82,7 @@ export function useDokumenStoreApi() {
   /* ── Document ── */
   const addDocument = async (
     doc: Omit<DocumentItem, "id" | "createdAt" | "revisions"> & {
-      initialRevision: Omit<Revision, "id" | "uploadedAt"> & { file?: File };
+      initialRevision: Omit<Revision, "id" | "uploadedAt" | "status"> & { file?: File };
     },
   ) => {
     if (!doc.initialRevision.file) {
@@ -123,8 +125,14 @@ export function useDokumenStoreApi() {
     await revisiApi.create(Number(docId), {
       version: rev.version,
       alasan_revisi: rev.alasanRevisi,
+      status: rev.status,
       file: rev.file,
     });
+    await reload();
+  };
+  const updateRevision = async (docId: string, revId: string, p: Partial<Revision>) => {
+    if (!p.status) return;
+    await revisiApi.update(Number(docId), Number(revId), { status: p.status });
     await reload();
   };
   const removeRevision = async (docId: string, revId: string) => {
@@ -136,7 +144,7 @@ export function useDokumenStoreApi() {
     data,
     addCover, updateCover, removeCover,
     addDocument, updateDocument, removeDocument,
-    addRevision, removeRevision,
+    addRevision, updateRevision, removeRevision,
   };
 }
 

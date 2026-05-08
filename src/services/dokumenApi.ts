@@ -34,7 +34,9 @@ export type ApiRevisi = {
   version: string;
   alasan_revisi: string;
   file_url: string;
+  file_download_url?: string;
   file_name: string;
+  status?: "Aktif" | "Tidak Aktif";
   uploaded_at: string;
 };
 
@@ -45,7 +47,7 @@ export type ApiDokumen = {
   jenis_dokumen?: string;
   kegiatan: string;
   unit: string;
-  status: "Aktif" | "Revisi" | "Arsip";
+  status: "Aktif" | "Tidak Aktif";
   created_at: string;
   /** Revisi terbaru (selalu ditampilkan pertama). */
   latest_revision?: ApiRevisi;
@@ -86,7 +88,7 @@ export const dokumenApi = {
     jenis_dokumen?: string;
     kegiatan: string;
     unit: string;
-    status?: "Aktif" | "Revisi" | "Arsip";
+    status?: "Aktif" | "Tidak Aktif";
     version: string;
     file: File; // PDF, max 2MB (validasi server-side)
   }) => unwrap<ApiDokumen>((await api.post("/dokumen", toFormData(input))).data),
@@ -100,7 +102,7 @@ export const dokumenApi = {
       jenis_dokumen: string;
       kegiatan: string;
       unit: string;
-      status: "Aktif" | "Revisi" | "Arsip";
+      status: "Aktif" | "Tidak Aktif";
     }>
   ) => unwrap<ApiDokumen>((await api.put(`/dokumen/${id}`, input)).data),
 
@@ -117,11 +119,17 @@ export const revisiApi = {
   /** Tambah revisi baru (PDF, max 2MB — divalidasi server). */
   create: async (
     dokumenId: number,
-    input: { version: string; alasan_revisi: string; file: File }
+    input: { version: string; alasan_revisi: string; status?: "Aktif" | "Tidak Aktif"; file: File }
   ) =>
     unwrap<ApiRevisi>(
       (await api.post(`/dokumen/${dokumenId}/revisi`, toFormData(input))).data
     ),
+
+  update: async (
+    dokumenId: number,
+    revId: number,
+    input: { status: "Aktif" | "Tidak Aktif" }
+  ) => unwrap<ApiRevisi>((await api.put(`/dokumen/${dokumenId}/revisi/${revId}`, input)).data),
 
   remove: async (dokumenId: number, revId: number) => {
     await api.delete(`/dokumen/${dokumenId}/revisi/${revId}`);

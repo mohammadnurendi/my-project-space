@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
   FileText,
@@ -18,13 +19,15 @@ import FaqAccordion, { FaqItem } from "@/components/FaqAccordion";
 import ParallaxBg from "@/components/ParallaxBg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
+import { dokumenApi, kategoriApi, type ApiDokumen, type ApiKategori } from "@/services/dokumenApi";
 import heroBg from "@/assets/Gambar1.jpg";
 
-const documents = [
-  { title: "Dokumen Pedoman", sub: "Sistem Penjaminan Mutu", bg: "bg-blue-900", Icon: FileText },
-  { title: "Formulir", sub: "Sistem Penjaminan Mutu", bg: "bg-foreground", Icon: Files },
-  { title: "Dokumen Kebijakan", sub: "Sistem Penjaminan Mutu", bg: "bg-primary", Icon: ClipboardList },
-  { title: "Dokumen Manual", sub: "Sistem Penjaminan Mutu", bg: "bg-purple-900", Icon: BookOpen },
+const docIcons = [FileText, Files, ClipboardList, BookOpen];
+const docStyles = [
+  "from-primary/95 via-primary/70 to-foreground/95",
+  "from-foreground/95 via-foreground/75 to-primary/80",
+  "from-emerald-700/95 via-primary/70 to-foreground/90",
+  "from-sky-800/95 via-primary/65 to-foreground/90",
 ];
 
 const features = [
@@ -89,6 +92,32 @@ const locationInfo = [
 const Home = () => {
   const { isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<ApiKategori[]>([]);
+  const [documents, setDocuments] = useState<ApiDokumen[]>([]);
+
+  useEffect(() => {
+    Promise.all([kategoriApi.list(), dokumenApi.list()])
+      .then(([kategoriData, dokumenData]) => {
+        setCategories(kategoriData);
+        setDocuments(dokumenData);
+      })
+      .catch(() => {
+        setCategories([]);
+        setDocuments([]);
+      });
+  }, []);
+
+  const documentCards = useMemo(() => {
+    return categories.slice(0, 4).map((category, index) => {
+      const count = documents.filter((doc) => doc.kategori_id === category.id).length;
+      return {
+        ...category,
+        count,
+        Icon: docIcons[index % docIcons.length],
+        bg: docStyles[index % docStyles.length],
+      };
+    });
+  }, [categories, documents]);
 
   const goToDokumen = () => {
     if (!isAuthenticated) navigate("/login");
@@ -232,19 +261,25 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
-            {documents.map((doc, i) => {
+            {documentCards.map((doc, i) => {
               const { Icon } = doc;
               return (
                 <button
-                  key={i}
+                  key={doc.id}
                   onClick={goToDokumen}
                   className={cn(
-                    "group cursor-pointer relative rounded-2xl overflow-hidden aspect-[3/4] shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left animate-fade-up",
-                    doc.bg
+                    "group cursor-pointer relative rounded-2xl overflow-hidden aspect-[3/4] shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 text-left animate-fade-up bg-foreground"
                   )}
                   style={{ animationDelay: `${i * 80}ms` }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-foreground/90 via-foreground/30 to-transparent z-10" />
+                  {doc.image_url && (
+                    <img
+                      src={doc.image_url}
+                      alt={doc.title}
+                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  )}
+                  <div className={cn("absolute inset-0 bg-gradient-to-t opacity-90 z-10", doc.bg)} />
                   <div
                     className="absolute inset-0 opacity-10"
                     style={{
@@ -258,13 +293,32 @@ const Home = () => {
                   </div>
                   <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 z-20">
                     <h3 className="text-background font-bold text-sm leading-tight">{doc.title}</h3>
-                    <p className="text-background/70 text-xs mt-1">{doc.sub}</p>
+                    <p className="text-background/70 text-xs mt-1 line-clamp-2">{doc.description}</p>
+                    <p className="mt-3 inline-flex items-center rounded-full bg-background/15 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-background/90">
+                      {doc.count} Dokumen
+                    </p>
                   </div>
                   <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10" />
                 </button>
               );
             })}
           </div>
+          {documentCards.length === 0 && (
+            <div className="rounded-3xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
+              Kategori dokumen belum tersedia.
+            </div>
+          )}
+          {categories.length > 4 && (
+            <div className="mt-8 flex justify-center">
+              <button
+                onClick={goToDokumen}
+                className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-primary/35 active:scale-95"
+              >
+                Lihat Selengkapnya
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

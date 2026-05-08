@@ -4,7 +4,7 @@
  * Endpoint Laravel:
  *   GET    /api/berita?q=&kategori=&featured=
  *   GET    /api/berita/{id}
- *   POST   /api/berita                  (multipart: judul, kategori, ringkasan, isi, penulis, tanggal, featured, tags[], gambar)
+ *   POST   /api/berita                  (multipart: judul, kategori, ringkasan, isi, penulis, tanggal, featured, tags[], gambar, gambar_lain[])
  *   PUT    /api/berita/{id}             (multipart via _method=PUT bila ada file)
  *   DELETE /api/berita/{id}
  */
@@ -20,6 +20,7 @@ export type ApiBerita = {
   penulis: string;
   tanggal: string;             // ISO
   gambar_url?: string;
+  gambar_urls?: string[];
   featured: boolean;
   tags: string[];
   created_at: string;
@@ -36,6 +37,7 @@ export type BeritaInput = {
   featured?: boolean;
   tags?: string[];
   gambar?: File;               // file gambar (opsional)
+  gambar_lain?: File[];         // foto tambahan, total foto maks 3
 };
 
 export const beritaApi = {
@@ -45,17 +47,15 @@ export const beritaApi = {
   show: async (id: number) =>
     unwrap<ApiBerita>((await api.get(`/berita/${id}`)).data),
 
+  // Selalu kirim multipart/form-data agar gambar dan boolean featured terkirim dengan benar
   create: async (input: BeritaInput) =>
-    unwrap<ApiBerita>((await api.post("/berita", toFormData(input))).data),
+    unwrap<ApiBerita>((await api.post("/berita", toFormData(input as unknown as Record<string, unknown>))).data),
 
-  update: async (id: number, input: Partial<BeritaInput>) => {
-    if (input.gambar instanceof File) {
-      return unwrap<ApiBerita>(
-        await postWithMethod(`/berita/${id}`, toFormData(input), "PUT")
-      );
-    }
-    return unwrap<ApiBerita>((await api.put(`/berita/${id}`, input)).data);
-  },
+  // Selalu gunakan _method=PUT via FormData agar boolean dan file konsisten
+  update: async (id: number, input: Partial<BeritaInput>) =>
+    unwrap<ApiBerita>(
+      await postWithMethod(`/berita/${id}`, toFormData(input as unknown as Record<string, unknown>), "PUT")
+    ),
 
   remove: async (id: number) => {
     await api.delete(`/berita/${id}`);

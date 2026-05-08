@@ -55,7 +55,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setState(fromUser(user));
       return { success: true, role: user.role };
     } catch (e: any) {
-      return { success: false, error: e?.message ?? "Email atau kata sandi salah." };
+      const message = e?.message === "Kredensial tidak valid."
+        ? "email atau password salah"
+        : e?.message ?? "email atau password salah";
+      return { success: false, error: message };
     }
   };
 

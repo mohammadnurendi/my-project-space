@@ -8,7 +8,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 
-export type DocStatus = "Aktif" | "Revisi" | "Arsip";
+export type DocStatus = "Aktif" | "Tidak Aktif";
 
 export type Revision = {
   id: string;
@@ -16,7 +16,9 @@ export type Revision = {
   fileName: string;         // nama file PDF
   fileSize?: number;        // bytes (opsional)
   fileDataUrl?: string;     // dataURL (opsional, mock storage)
+  fileDownloadUrl?: string;  // URL khusus download (opsional, API storage)
   alasanRevisi: string;
+  status: DocStatus;
   uploadedAt: string;       // ISO date
   uploadedBy?: string;
 };
@@ -112,7 +114,7 @@ export function useDokumenStore() {
 
   /* Document ops */
   const addDocument = (
-    doc: Omit<DocumentItem, "id" | "createdAt" | "revisions"> & { initialRevision: Omit<Revision, "id" | "uploadedAt"> }
+    doc: Omit<DocumentItem, "id" | "createdAt" | "revisions"> & { initialRevision: Omit<Revision, "id" | "uploadedAt" | "status"> }
   ) =>
     update((d) => {
       const { initialRevision, ...rest } = doc;
@@ -120,7 +122,7 @@ export function useDokumenStore() {
         ...rest,
         id: newId("doc"),
         createdAt: now(),
-        revisions: [{ ...initialRevision, id: newId("rv"), uploadedAt: now() }],
+        revisions: [{ status: "Aktif", ...initialRevision, id: newId("rv"), uploadedAt: now() }],
       };
       return { ...d, documents: [newDoc, ...d.documents] };
     });
@@ -135,7 +137,7 @@ export function useDokumenStore() {
       ...d,
       documents: d.documents.map((x) =>
         x.id === docId
-          ? { ...x, status: "Revisi", revisions: [{ ...rev, id: newId("rv"), uploadedAt: now() }, ...x.revisions] }
+          ? { ...x, revisions: [{ status: "Aktif", ...rev, id: newId("rv"), uploadedAt: now() }, ...x.revisions] }
           : x
       ),
     }));
@@ -146,12 +148,21 @@ export function useDokumenStore() {
         x.id === docId ? { ...x, revisions: x.revisions.filter((r) => r.id !== revId) } : x
       ),
     }));
+  const updateRevision = (docId: string, revId: string, p: Partial<Revision>) =>
+    update((d) => ({
+      ...d,
+      documents: d.documents.map((x) =>
+        x.id === docId
+          ? { ...x, revisions: x.revisions.map((r) => (r.id === revId ? { ...r, ...p } : r)) }
+          : x
+      ),
+    }));
 
   return {
     data,
     addCover, updateCover, removeCover,
     addDocument, updateDocument, removeDocument,
-    addRevision, removeRevision,
+    addRevision, updateRevision, removeRevision,
   };
 }
 

@@ -1,4 +1,6 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { kategoriApi, type ApiKategori } from "@/services/dokumenApi";
 import logoLpm from "@/assets/logo-lpm.png";
 
 const navLinks = [
@@ -9,22 +11,20 @@ const navLinks = [
   { label: "Tim LPM Itenas", path: "/tim" },
 ];
 
-const docLinks = [
-  "Dokumen Manual",
-  "Dokumen Formulir",
-  "Dokumen Standar",
-  "Dokumen Kebijakan",
-  "Dokumen Audit",
-];
-
-const otherLinks = ["Dokumen Pedoman", "Dokumen Surat", "Dokumen RTM"];
-
 const Footer = () => {
+  const [categories, setCategories] = useState<ApiKategori[]>([]);
+
+  useEffect(() => {
+    kategoriApi.list().then(setCategories).catch(() => setCategories([]));
+  }, []);
+
+  const docLinks = categories.slice(0, 4);
+  const otherLinks = categories.slice(4, 8);
+
   return (
     <footer className="bg-foreground text-background/80 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-background/10">
-          {/* Brand */}
           <div>
             <div className="mb-4 bg-background/95 rounded-xl p-3 inline-block">
               <img src={logoLpm} alt="LPM Itenas" className="h-10 w-auto" />
@@ -42,7 +42,6 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Navigasi */}
           <div>
             <h4 className="text-background font-semibold text-sm uppercase tracking-wider mb-5">
               Navigasi
@@ -62,53 +61,72 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Dokumen */}
           <div>
             <h4 className="text-background font-semibold text-sm uppercase tracking-wider mb-5">
               Dokumen
             </h4>
             <ul className="space-y-3">
               {docLinks.map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
+                <li key={item.id}>
+                  <Link
+                    to="/dokumen"
                     className="text-sm text-background/60 hover:text-primary transition-colors duration-200 flex items-center gap-2 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
-                    {item}
-                  </a>
+                    {item.title}
+                  </Link>
                 </li>
               ))}
+              {docLinks.length === 0 && (
+                <li className="text-sm text-background/40">Belum ada kategori.</li>
+              )}
             </ul>
           </div>
 
-          {/* Lainnya */}
           <div>
             <h4 className="text-background font-semibold text-sm uppercase tracking-wider mb-5">
               Lainnya
             </h4>
             <ul className="space-y-3">
               {otherLinks.map((item) => (
-                <li key={item}>
-                  <a
-                    href="#"
+                <li key={item.id}>
+                  <Link
+                    to="/dokumen"
                     className="text-sm text-background/60 hover:text-primary transition-colors duration-200 flex items-center gap-2 group"
                   >
                     <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
-                    {item}
-                  </a>
+                    {item.title}
+                  </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  to="/berita"
+                  className="text-sm text-background/60 hover:text-primary transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  Berita LPM
+                </Link>
+              </li>
+              <li>
+                <Link
+                  to="/login"
+                  className="text-sm text-background/60 hover:text-primary transition-colors duration-200 flex items-center gap-2 group"
+                >
+                  <span className="w-1 h-1 rounded-full bg-primary/50 group-hover:bg-primary transition-colors" />
+                  Login Sistem
+                </Link>
+              </li>
             </ul>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row items-center justify-between pt-8 gap-4">
           <p className="text-xs text-background/40">
-            © <a href="#" className="text-primary hover:underline">Lembaga Penjamin Mutu</a> ITENAS 2025. All Rights Reserved.
+            © <Link to="/" className="text-primary hover:underline">Lembaga Penjaminan Mutu</Link> ITENAS 2026. All Rights Reserved.
           </p>
           <p className="text-xs text-background/40">
-            Designed By <a href="#" className="text-primary hover:underline">UPT-TIK</a> Itenas
+            Designed By <span className="text-primary">UPT-TIK</span> Itenas
           </p>
         </div>
       </div>

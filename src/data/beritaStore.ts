@@ -14,6 +14,7 @@ export type BeritaItem = {
   penulis: string;
   tanggal: string;
   gambar: string;
+  gambarUrls?: string[];
   featured: boolean;
   tags: string[];
 };

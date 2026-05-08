@@ -6,12 +6,16 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import {
-  useDokumenStore, latestRevision, formatDate, countDocs,
+  useDokumenStoreApi,
+} from "@/data/dokumenStoreApi";
+import {
+  latestRevision, formatDate, countDocs,
   type Cover, type DocumentItem,
 } from "@/data/dokumenStore";
 import { toast } from "sonner";
 import ParallaxBg from "@/components/ParallaxBg";
 import heroBg from "@/assets/Gambar7.jpg";
+import LogoutConfirmDialog from "@/components/LogoutConfirmDialog";
 
 type View =
   | { kind: "covers" }
@@ -19,14 +23,18 @@ type View =
   | { kind: "doc"; docId: string };
 
 const Dokumen = () => {
-  const { email, logout } = useAuth();
+  const { email, name, logout } = useAuth();
   const navigate = useNavigate();
-  const { data } = useDokumenStore();
+  const { data } = useDokumenStoreApi();
   const [view, setView] = useState<View>({ kind: "covers" });
   const [query, setQuery] = useState("");
+  const [logoutOpen, setLogoutOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
+    toast.success("Berhasil keluar", {
+      description: "Sesi Anda sudah diakhiri dengan aman.",
+    });
     navigate("/login", { replace: true });
   };
 
@@ -87,13 +95,14 @@ const Dokumen = () => {
                 Pilih kategori untuk melihat daftar dokumen. Setiap dokumen menampilkan revisi terbaru beserta riwayatnya.
               </p>
             </div>
-            {email && (
+            {(name || email) && (
               <div className="flex items-center gap-3 bg-background/5 border border-background/10 rounded-2xl px-4 py-3 backdrop-blur-sm">
                 <div className="text-right">
                   <p className="text-[10px] uppercase tracking-wider text-background/50 font-semibold">Login sebagai</p>
-                  <p className="text-sm font-semibold text-background">{email}</p>
+                  <p className="text-sm font-semibold text-background">{name?.trim() || "Pengguna LPM"}</p>
+                  {email && <p className="text-[11px] text-background/45">{email}</p>}
                 </div>
-                <button onClick={handleLogout} className="text-xs font-semibold text-primary hover:text-primary-light transition-colors">
+                <button onClick={() => setLogoutOpen(true)} className="text-xs font-semibold text-primary hover:text-primary-light transition-colors">
                   Logout
                 </button>
               </div>
@@ -208,6 +217,11 @@ const Dokumen = () => {
           )}
         </div>
       </section>
+      <LogoutConfirmDialog
+        open={logoutOpen}
+        onOpenChange={setLogoutOpen}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 };
@@ -326,10 +340,10 @@ function DocDetailPublic({
               </div>
             </div>
             <div className="flex gap-2 shrink-0">
-              <button onClick={() => toast(`Pratinjau: ${last.fileName}`)} className="inline-flex items-center gap-2 bg-card border border-border hover:border-primary/40 text-foreground rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors">
+              <button onClick={() => last.fileDataUrl ? window.open(last.fileDataUrl, "_blank") : toast("URL tidak tersedia")} className="inline-flex items-center gap-2 bg-card border border-border hover:border-primary/40 text-foreground rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors">
                 <Eye className="w-4 h-4" />Lihat
               </button>
-              <button onClick={() => toast.success("Unduhan dimulai", { description: last.fileName })} className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors shadow-md shadow-primary/20">
+              <button onClick={() => { const url = last.fileDownloadUrl ?? last.fileDataUrl; if (url) { const a = document.createElement("a"); a.href = url; a.download = last.fileName; a.click(); } else toast("URL tidak tersedia"); }} className="inline-flex items-center gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors shadow-md shadow-primary/20">
                 <Download className="w-4 h-4" />Unduh
               </button>
             </div>
@@ -364,10 +378,10 @@ function DocDetailPublic({
                       {rev.alasanRevisi && <p className="text-xs text-muted-foreground mt-1.5 italic">"{rev.alasanRevisi}"</p>}
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <button onClick={() => toast(`Pratinjau: ${rev.fileName}`)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-2 py-1.5 rounded-lg hover:bg-muted">
+                      <button onClick={() => rev.fileDataUrl ? window.open(rev.fileDataUrl, "_blank") : toast("URL tidak tersedia")} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-2 py-1.5 rounded-lg hover:bg-muted">
                         <Eye className="w-3.5 h-3.5" />Lihat
                       </button>
-                      <button onClick={() => toast.success("Unduhan dimulai", { description: rev.fileName })} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-2 py-1.5 rounded-lg hover:bg-muted">
+                      <button onClick={() => { const url = rev.fileDownloadUrl ?? rev.fileDataUrl; if (url) { const a = document.createElement("a"); a.href = url; a.download = rev.fileName; a.click(); } else toast("URL tidak tersedia"); }} className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-2 py-1.5 rounded-lg hover:bg-muted">
                         <Download className="w-3.5 h-3.5" />Unduh
                       </button>
                     </div>
