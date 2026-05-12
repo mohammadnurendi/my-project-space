@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { authApi, type ApiUser } from "@/services/authApi";
+import type { ApiError } from "@/services/api";
 import { TOKEN_KEY } from "@/services/api";
 
 export type UserRole = "user" | "admin";
@@ -42,9 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     authApi
       .me()
       .then((u) => setState(fromUser(u)))
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        setState(EMPTY);
+      .catch((error: ApiError) => {
+        if (error.status === 401 || error.status === 403) {
+          localStorage.removeItem(TOKEN_KEY);
+          setState(EMPTY);
+        }
       })
       .finally(() => setLoading(false));
   }, []);
@@ -54,10 +57,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { user } = await authApi.login(email.trim().toLowerCase(), password);
       setState(fromUser(user));
       return { success: true, role: user.role };
-    } catch (e: any) {
-      const message = e?.message === "Kredensial tidak valid."
+    } catch (e: unknown) {
+      const apiError = e as ApiError;
+      const message = apiError?.message === "Kredensial tidak valid."
         ? "email atau password salah"
-        : e?.message ?? "email atau password salah";
+        : apiError?.message ?? "email atau password salah";
       return { success: false, error: message };
     }
   };

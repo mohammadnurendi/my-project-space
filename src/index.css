@@ -112,6 +112,44 @@
     opacity: 0;
     animation: fadeIn 0.6s ease forwards;
   }
+
+  .scroll-reveal {
+    opacity: 0;
+    transition:
+      opacity 640ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 640ms cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+
+  .scroll-reveal.reveal-up {
+    transform: translateY(16px);
+  }
+
+  .scroll-reveal.reveal-left {
+    transform: translateX(-26px);
+  }
+
+  .scroll-reveal.reveal-right {
+    transform: translateX(64px);
+  }
+
+  .scroll-reveal.reveal-zoom {
+    transform: scale(0.96);
+  }
+
+  .scroll-reveal.is-visible {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
 }
 
 @keyframes fadeUp {

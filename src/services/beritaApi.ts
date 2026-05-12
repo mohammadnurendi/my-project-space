@@ -21,6 +21,7 @@ export type ApiBerita = {
   tanggal: string;             // ISO
   gambar_url?: string;
   gambar_urls?: string[];
+  gambar_lain_urls?: string[];
   featured: boolean;
   tags: string[];
   created_at: string;
@@ -36,8 +37,8 @@ export type BeritaInput = {
   tanggal: string;
   featured?: boolean;
   tags?: string[];
-  gambar?: File;               // file gambar (opsional)
-  gambar_lain?: File[];         // foto tambahan, total foto maks 3
+  gambar?: File;               // foto cover (opsional)
+  gambar_lain?: File[];         // foto isi berita, maksimal 3
 };
 
 export const beritaApi = {

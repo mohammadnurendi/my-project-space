@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import logoLpmPutih from "@/assets/logolpmputih.png";
 import logoLpm from "@/assets/logo-lpm.png";
 import heroBg from "@/assets/Gambar1.jpg";
 import { toast } from "sonner";
@@ -73,8 +74,8 @@ const Login = () => {
         />
 
         <div className="relative z-10 flex min-h-screen flex-col justify-between px-12 py-10">
-          <Link to="/" className="inline-flex w-fit items-center gap-3 rounded-2xl bg-background/95 px-4 py-3 shadow-xl">
-            <img src={logoLpm} alt="LPM Itenas" className="h-10 w-auto" />
+          <Link to="/" className="inline-flex w-fit items-center gap-3 rounded-2xl px-4 py-3">
+            <img src={logoLpmPutih} alt="LPM Itenas" className="h-10 w-auto" />
           </Link>
 
           <div className="max-w-xl">

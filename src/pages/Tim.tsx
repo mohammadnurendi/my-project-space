@@ -19,18 +19,18 @@ const Tim = () => {
       />
 
       {/* Struktur Organisasi */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14 animate-fade-up">
-            <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+          <div className="mb-10">
+            <span className="block text-primary text-xs font-bold uppercase tracking-[0.22em] mb-3">
               Struktur
             </span>
-            <h2 className="text-3xl font-black text-foreground">
-              Struktur Organisasi <span className="text-primary">LPM ITENAS</span>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              Struktur Organisasi LPM ITENAS
             </h2>
           </div>
 
-          <div className="animate-fade-up overflow-x-auto pb-4 space-y-2">
+          <div className="overflow-x-auto pb-4 space-y-2">
             {headLevel && (
               <div className="flex justify-center flex-wrap gap-4">
                 {headLevel.members.map((m) => (
@@ -49,9 +49,9 @@ const Tim = () => {
 
               return (
                 <div key={lvl.id} className="space-y-2">
-                  <div className="flex justify-center"><div className="w-0.5 h-6 bg-primary/20" /></div>
+                  <div className="flex justify-center"><div className="w-px h-6 bg-border" /></div>
                   {lvl.members.length > 1 && (
-                    <div className="flex justify-center"><div className="w-3/4 h-0.5 bg-primary/20" /></div>
+                    <div className="flex justify-center"><div className="w-3/4 h-px bg-border" /></div>
                   )}
                   <div className={`${gridClass} gap-4`}>
                     {lvl.members.map((m) => (
@@ -68,11 +68,11 @@ const Tim = () => {
       </section>
 
       {/* Tim Pengelola */}
-      <section className="py-20 bg-surface">
+      <section className="py-16 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 animate-fade-up">
-            <h2 className="text-3xl font-black text-foreground">
-              Tim Pengelola <span className="text-primary">LPM ITENAS</span>
+          <div className="mb-10">
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              Tim Pengelola LPM ITENAS
             </h2>
           </div>
 
@@ -85,19 +85,19 @@ const Tim = () => {
       </section>
 
       {/* Auditor */}
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 animate-fade-up">
-            <h2 className="text-3xl font-black text-foreground">
-              Tim Auditor <span className="text-primary">Internal</span>
+          <div className="mb-10">
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              Tim Auditor Internal
             </h2>
           </div>
 
-          <div className="bg-surface rounded-3xl p-8 border border-border animate-fade-up">
+          <div className="bg-surface rounded-xl p-6 sm:p-8 border border-border">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {data.auditor.map((auditor, i) => (
-                <div key={i} className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 shadow-sm border border-border hover:border-primary/20 hover:shadow-md transition-all duration-200">
-                  <div className="w-8 h-8 rounded-full bg-accent border border-primary/10 flex items-center justify-center flex-shrink-0">
+                <div key={i} className="flex items-center gap-3 bg-card rounded-xl px-4 py-3 border border-border">
+                  <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0">
                     <span className="text-primary font-bold text-xs">{i + 1}</span>
                   </div>
                   <span className="text-sm text-foreground font-medium">{auditor}</span>

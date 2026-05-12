@@ -19,32 +19,22 @@ const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: Hero
 
   return (
     <section className="relative overflow-hidden pt-16">
-      {/* Parallax Background */}
       <div className="absolute inset-0 bg-foreground">
         {bgImage && (
           <img
             src={bgImage}
             alt=""
             className="absolute inset-0 w-full h-[120%] object-cover opacity-40 will-change-transform"
-            style={{ transform: `translateY(${offset * 0.4}px) scale(1.05)` }}
+            style={{ transform: `translateY(${offset * 0.35}px) scale(1.04)` }}
           />
         )}
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.15) 1px, transparent 0)",
-            backgroundSize: "32px 32px",
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-br from-foreground/85 via-foreground/75 to-primary/40" />
+        <div className="absolute inset-0 bg-gradient-to-br from-foreground/90 via-foreground/78 to-primary/38" />
       </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32">
-        <div className="animate-fade-up">
+        <div className="max-w-3xl">
           {badge && (
-            <div className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-primary rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest mb-6">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <div className="mb-5 text-xs font-bold uppercase tracking-[0.22em] text-primary">
               {badge}
             </div>
           )}
@@ -53,10 +43,7 @@ const HeroSection = ({ titleBlack, titleOrange, subtitle, badge, bgImage }: Hero
             {titleOrange && <span className="text-primary"> {titleOrange}</span>}
           </h1>
           {subtitle && (
-            <p
-              className="mt-4 text-background/70 text-lg max-w-xl animate-fade-up"
-              style={{ animationDelay: "200ms" }}
-            >
+            <p className="mt-4 text-background/70 text-base sm:text-lg max-w-2xl leading-relaxed">
               {subtitle}
             </p>
           )}

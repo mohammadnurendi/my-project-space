@@ -27,6 +27,7 @@ import { api, toFormData, unwrap } from "./api";
 import type {
   SejarahData, VisiMisiData, RoadMapData, TimData,
 } from "@/data/profilStore";
+import type { BerandaData } from "@/data/berandaContent";
 
 const get = async <T>(path: string) => unwrap<T>((await api.get(path)).data);
 const put = async <T>(path: string, body: T) =>
@@ -53,5 +54,9 @@ export const profilApi = {
       const data = unwrap<{ url: string }>(res.data);
       return data.url;
     },
+  },
+  beranda: {
+    get: () => get<BerandaData>("/profil/beranda"),
+    save: (d: BerandaData) => put<BerandaData>("/profil/beranda", d),
   },
 };

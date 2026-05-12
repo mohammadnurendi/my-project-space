@@ -29,21 +29,10 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 
-const KATEGORI_LIST = ["Audit", "Kegiatan", "Prestasi", "Pengumuman", "Sosialisasi", "Workshop", "Akreditasi"];
-
 const formatTanggal = (iso: string) =>
   new Date(iso).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
 
-const kategoriColor = (k: string) =>
-  (({
-    Audit: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
-    Kegiatan: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-    Prestasi: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
-    Pengumuman: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
-    Sosialisasi: "bg-sky-100 text-sky-700 ring-1 ring-sky-200",
-    Workshop: "bg-orange-100 text-orange-700 ring-1 ring-orange-200",
-    Akreditasi: "bg-rose-100 text-rose-700 ring-1 ring-rose-200",
-  } as Record<string,string>)[k] ?? "bg-muted text-muted-foreground");
+const kategoriColor = "bg-primary/10 text-primary ring-1 ring-primary/20";
 
 const kategoriIcon = (k: string) =>
   (({
@@ -69,29 +58,44 @@ function FieldLabel({ children, required }: { children: React.ReactNode; require
   );
 }
 
-function ImageUploadZone({ files, onFilesChange, existingUrls = [], error }: {
-  files: File[]; onFilesChange: (files: File[]) => void;
-  existingUrls?: string[]; error?: string;
+function ImageUploadZone({
+  files,
+  onFilesChange,
+  existingUrls = [],
+  error,
+  label,
+  description,
+  maxFiles = 1,
+  multiple = false,
+}: {
+  files: File[];
+  onFilesChange: (files: File[]) => void;
+  existingUrls?: string[];
+  error?: string;
+  label: string;
+  description: string;
+  maxFiles?: number;
+  multiple?: boolean;
 }) {
   const ref = useRef<HTMLInputElement>(null);
 
   const handleFiles = (list: FileList | null) => {
     const selected = Array.from(list ?? []).filter((file) => file.type.startsWith("image/"));
-    const limited = selected.slice(0, 3);
-    if (selected.length > 3) toast.error("Maksimal 3 foto berita");
+    const limited = selected.slice(0, maxFiles);
+    if (selected.length > maxFiles) toast.error(`Maksimal ${maxFiles} foto`);
     onFilesChange(limited);
   };
 
   return (
     <div className="space-y-2">
-      <FieldLabel>Foto Berita</FieldLabel>
+      <FieldLabel>{label}</FieldLabel>
       <div
         onClick={() => ref.current?.click()}
         className={`flex flex-col items-center justify-center gap-2 p-5 rounded-xl border-2 border-dashed cursor-pointer transition-all
           ${error ? "border-destructive/50 bg-destructive/5" : "border-border hover:border-primary/50 hover:bg-primary/5"}
           ${files.length ? "border-emerald-400/60 bg-emerald-50/40" : ""}`}
       >
-        <input ref={ref} type="file" accept="image/*" multiple className="hidden"
+        <input ref={ref} type="file" accept="image/*" multiple={multiple} className="hidden"
           onChange={(e) => handleFiles(e.target.files)} />
         {files.length ? (
           <div className="text-center">
@@ -105,7 +109,7 @@ function ImageUploadZone({ files, onFilesChange, existingUrls = [], error }: {
           <>
             <UploadCloud className="w-7 h-7 text-muted-foreground" />
             <p className="text-[13px] text-foreground/60 font-medium">
-              {existingUrls.length ? "Klik untuk ganti foto" : "Klik untuk upload 1-3 foto (opsional)"}
+              {existingUrls.length ? "Klik untuk ganti foto" : description}
             </p>
           </>
         )}
@@ -120,7 +124,7 @@ function ImageUploadZone({ files, onFilesChange, existingUrls = [], error }: {
           ))}
         </div>
       )}
-      <p className="text-[11px] text-muted-foreground">Foto pertama menjadi foto utama. Maksimal 3 foto, masing-masing 2MB.</p>
+      <p className="text-[11px] text-muted-foreground">{description}. Masing-masing maksimal 2MB.</p>
       <ErrorMsg msg={error} />
     </div>
   );
@@ -178,7 +182,8 @@ const AdminBerita = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ApiBerita | null>(null);
   const [form, setForm] = useState<FormState>(emptyForm);
-  const [gambarFiles, setGambarFiles] = useState<File[]>([]);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [contentFiles, setContentFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [openMenuId, setOpenMenuId] = useState<number | null>(null);
@@ -206,8 +211,13 @@ const AdminBerita = () => {
       return matchQ && matchK;
     }), [beritaList, query, filterKat]);
 
+  const kategoriOptions = useMemo(
+    () => Array.from(new Set(beritaList.map((b) => b.kategori).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
+    [beritaList]
+  );
+
   const openCreate = () => {
-    setEditing(null); setForm(emptyForm); setGambarFiles([]); setErrors({}); setFormOpen(true);
+    setEditing(null); setForm(emptyForm); setCoverFile(null); setContentFiles([]); setErrors({}); setFormOpen(true);
   };
 
   const openEdit = (b: ApiBerita) => {
@@ -217,7 +227,7 @@ const AdminBerita = () => {
       penulis: b.penulis, tanggal: b.tanggal?.slice(0, 10) ?? new Date().toISOString().slice(0, 10),
       featured: b.featured, tags: b.tags ?? [],
     });
-    setGambarFiles([]); setErrors({}); setFormOpen(true);
+    setCoverFile(null); setContentFiles([]); setErrors({}); setFormOpen(true);
   };
 
   const validate = () => {
@@ -274,7 +284,8 @@ const AdminBerita = () => {
       judul: form.judul, kategori: form.kategori, ringkasan: form.ringkasan,
       isi: form.isi, penulis: form.penulis, tanggal: form.tanggal,
       featured: form.featured, tags: form.tags,
-      ...(gambarFiles.length ? { gambar: gambarFiles[0], gambar_lain: gambarFiles.slice(1) } : {}),
+      ...(coverFile ? { gambar: coverFile } : {}),
+      ...(contentFiles.length ? { gambar_lain: contentFiles } : {}),
     };
     try {
       if (editing) {
@@ -285,7 +296,7 @@ const AdminBerita = () => {
         toast.success("Berita dipublikasikan", { description: form.judul });
       }
       setFormOpen(false); reload();
-    } catch (e: any) {
+    } catch (e: unknown) {
       const apiErr = e as ApiError;
       if (apiErr.errors) {
         const mapped: Record<string, string> = {};
@@ -309,7 +320,19 @@ const AdminBerita = () => {
     finally { setDeleteId(null); }
   };
 
+  const MAX_FEATURED = 3;
+
   const toggleFeatured = async (b: ApiBerita) => {
+    // Kalau mau jadikan unggulan, cek dulu batasnya
+    if (!b.featured) {
+      const currentFeaturedCount = beritaList.filter((x) => x.featured).length;
+      if (currentFeaturedCount >= MAX_FEATURED) {
+        toast.error(`Maksimal ${MAX_FEATURED} berita unggulan`, {
+          description: "Hapus salah satu berita unggulan terlebih dahulu sebelum menambah yang baru.",
+        });
+        return;
+      }
+    }
     try {
       await beritaApi.update(b.id, { featured: !b.featured });
       toast.success(b.featured ? "Dihapus dari unggulan" : "Ditambahkan ke unggulan", { description: b.judul });
@@ -327,7 +350,7 @@ const AdminBerita = () => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         {[
           { label: "Total Berita", val: beritaList.length, color: "text-foreground" },
-          { label: "Featured", val: beritaList.filter((b) => b.featured).length, color: "text-amber-600" },
+          { label: "Unggulan (maks 3)", val: `${beritaList.filter((b) => b.featured).length}/3`, color: "text-amber-600" },
         ].map((s) => (
           <div key={s.label} className="bg-card border border-border rounded-2xl px-4 py-3 shadow-sm">
             <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">{s.label}</p>
@@ -348,7 +371,7 @@ const AdminBerita = () => {
           <SelectTrigger className="w-full sm:w-44 rounded-xl"><SelectValue placeholder="Semua kategori" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Semua kategori</SelectItem>
-            {KATEGORI_LIST.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
+            {kategoriOptions.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -395,7 +418,7 @@ const AdminBerita = () => {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${kategoriColor(b.kategori)}`}>
+                      <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-1 rounded-full ${kategoriColor}`}>
                         <KatIcon className="w-3 h-3" />{b.kategori}
                       </span>
                     </td>
@@ -440,7 +463,7 @@ const AdminBerita = () => {
                       </button>
                     </div>
                     <div className="flex items-center gap-2 mt-2">
-                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${kategoriColor(b.kategori)}`}>
+                      <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${kategoriColor}`}>
                         <KatIcon className="w-2.5 h-2.5" />{b.kategori}
                       </span>
                       {b.featured && <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />}
@@ -485,14 +508,12 @@ const AdminBerita = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <FieldLabel required>Kategori</FieldLabel>
-                <Select value={form.kategori} onValueChange={(v) => setForm({ ...form, kategori: v })}>
-                  <SelectTrigger className={`rounded-lg text-sm h-10 ${errors.kategori ? "border-destructive/60" : ""}`}>
-                    <SelectValue placeholder="Pilih kategori" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {KATEGORI_LIST.map((k) => <SelectItem key={k} value={k}>{k}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={form.kategori}
+                  onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+                  placeholder="Contoh: Audit, Kegiatan, Prestasi..."
+                  className={`rounded-lg text-sm h-10 ${errors.kategori ? "border-destructive/60" : ""}`}
+                />
                 <ErrorMsg msg={errors.kategori} />
               </div>
               <div className="space-y-1.5">
@@ -512,11 +533,20 @@ const AdminBerita = () => {
               </div>
               <div className="space-y-1.5">
                 <FieldLabel>Unggulan</FieldLabel>
-                <button type="button" onClick={() => setForm({ ...form, featured: !form.featured })}
+                <button type="button" onClick={() => {
+                    if (!form.featured) {
+                      const currentCount = beritaList.filter((x) => x.featured && x.id !== editing?.id).length;
+                      if (currentCount >= MAX_FEATURED) {
+                        toast.error(`Maksimal ${MAX_FEATURED} berita unggulan`);
+                        return;
+                      }
+                    }
+                    setForm({ ...form, featured: !form.featured });
+                  }}
                   className={`w-full h-10 flex items-center gap-2.5 px-3.5 rounded-lg border text-sm font-semibold transition-all
                     ${form.featured ? "bg-amber-50 border-amber-300 text-amber-700" : "bg-muted/50 border-border text-muted-foreground"}`}>
                   {form.featured ? <Star className="w-4 h-4 fill-current" /> : <StarOff className="w-4 h-4" />}
-                  {form.featured ? "Unggulan Aktif" : "Jadikan Unggulan"}
+                  {form.featured ? "Unggulan Aktif" : `Jadikan Unggulan (maks ${MAX_FEATURED})`}
                 </button>
               </div>
             </div>
@@ -554,7 +584,27 @@ const AdminBerita = () => {
               </p>
               <ErrorMsg msg={errors.isi} />
             </div>
-            <ImageUploadZone files={gambarFiles} onFilesChange={setGambarFiles} existingUrls={editing?.gambar_urls ?? (editing?.gambar_url ? [editing.gambar_url] : [])} error={errors.gambar ?? errors.gambar_lain} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <ImageUploadZone
+                label="Foto Cover"
+                description="Upload 1 foto cover untuk kartu berita dan bagian paling atas"
+                files={coverFile ? [coverFile] : []}
+                onFilesChange={(files) => setCoverFile(files[0] ?? null)}
+                existingUrls={editing?.gambar_url ? [editing.gambar_url] : []}
+                error={errors.gambar}
+                maxFiles={1}
+              />
+              <ImageUploadZone
+                label="Foto Isi Berita"
+                description="Upload sampai 3 foto untuk disisipkan di dalam isi berita"
+                files={contentFiles}
+                onFilesChange={setContentFiles}
+                existingUrls={editing?.gambar_lain_urls ?? []}
+                error={errors.gambar_lain ?? errors["gambar_lain.0"]}
+                maxFiles={3}
+                multiple
+              />
+            </div>
             <TagInput tags={form.tags} onChange={(t) => setForm({ ...form, tags: t })} />
           </div>
           <DialogFooter className="px-6 py-4 border-t border-border bg-muted/30 sticky bottom-0 gap-2 flex-row justify-end">

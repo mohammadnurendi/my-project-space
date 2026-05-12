@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Plus, Search, Pencil, Trash2, Mail, Shield, User as UserIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { userApi, type ApiAccount } from "@/services/userApi";
+import { kategoriApi, type ApiKategori } from "@/services/dokumenApi";
 import type { ApiError } from "@/services/api";
 import AdminLayout from "@/components/AdminLayout";
 import {
@@ -38,6 +39,7 @@ type Account = {
   name: string;
   email: string;
   role: "admin" | "user";
+  categoryIds: number[];
   joinedAt: string;
 };
 
@@ -46,6 +48,7 @@ const toAccount = (account: ApiAccount): Account => ({
   name: account.name,
   email: account.email,
   role: account.role,
+  categoryIds: account.category_ids ?? [],
   joinedAt: account.created_at
     ? new Date(account.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" })
     : "-",
@@ -53,6 +56,7 @@ const toAccount = (account: ApiAccount): Account => ({
 
 const AdminAkun = () => {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [categories, setCategories] = useState<ApiKategori[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [query, setQuery] = useState("");
@@ -60,7 +64,7 @@ const AdminAkun = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
-  const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" as Account["role"] });
+  const [form, setForm] = useState({ name: "", email: "", password: "", role: "user" as Account["role"], categoryIds: [] as number[] });
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
   const reload = async () => {
@@ -75,7 +79,12 @@ const AdminAkun = () => {
     }
   };
 
-  useEffect(() => { void reload(); }, []);
+  useEffect(() => {
+    void reload();
+    kategoriApi.list()
+      .then(setCategories)
+      .catch(() => toast.error("Gagal memuat daftar kategori untuk hak akses"));
+  }, []);
 
   const filtered = useMemo(() => {
     return accounts.filter((a) => {
@@ -87,14 +96,23 @@ const AdminAkun = () => {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ name: "", email: "", password: "", role: "user" });
+    setForm({ name: "", email: "", password: "", role: "user", categoryIds: [] });
     setFormOpen(true);
   };
 
   const openEdit = (a: Account) => {
     setEditing(a);
-    setForm({ name: a.name, email: a.email, password: "", role: a.role });
+    setForm({ name: a.name, email: a.email, password: "", role: a.role, categoryIds: a.categoryIds });
     setFormOpen(true);
+  };
+
+  const toggleCategoryAccess = (id: number) => {
+    setForm((current) => ({
+      ...current,
+      categoryIds: current.categoryIds.includes(id)
+        ? current.categoryIds.filter((categoryId) => categoryId !== id)
+        : [...current.categoryIds, id],
+    }));
   };
 
   const handleSave = async () => {
@@ -114,6 +132,7 @@ const AdminAkun = () => {
           name: form.name.trim(),
           email: form.email.trim().toLowerCase(),
           role: form.role,
+          category_ids: form.role === "user" ? form.categoryIds : [],
           ...(form.password ? { password: form.password } : {}),
         };
         await userApi.update(editing.id, payload);
@@ -124,6 +143,7 @@ const AdminAkun = () => {
           email: form.email.trim().toLowerCase(),
           role: form.role,
           password: form.password,
+          category_ids: form.role === "user" ? form.categoryIds : [],
         });
         toast.success("Akun ditambahkan", { description: `${form.email} bisa login dengan password awal.` });
       }
@@ -306,14 +326,14 @@ const AdminAkun = () => {
 
       {/* Form */}
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
-        <DialogContent className="rounded-2xl">
-          <DialogHeader>
+        <DialogContent className="rounded-2xl max-h-[92vh] overflow-hidden p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-card">
             <DialogTitle>{editing ? "Edit Akun" : "Tambah Akun"}</DialogTitle>
             <DialogDescription>
               {editing ? "Perbarui informasi pengguna." : "Buat akun pengguna baru dengan password awal."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 px-6 py-5 overflow-y-auto max-h-[calc(92vh-11.5rem)]">
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-[12px] leading-relaxed text-amber-800">
               Pengiriman email otomatis belum aktif. Password awal perlu dibuat di form ini, lalu disampaikan ke pengguna melalui kanal resmi.
             </div>
@@ -350,8 +370,45 @@ const AdminAkun = () => {
                 </Select>
               </div>
             </div>
+            {form.role === "user" && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <Label>Hak Akses Kategori Dokumen</Label>
+                  <span className="text-[11px] font-semibold text-muted-foreground">
+                    {form.categoryIds.length}/{categories.length} kategori
+                  </span>
+                </div>
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-border bg-muted/20 p-2 space-y-1.5">
+                  {categories.length === 0 && (
+                    <p className="px-3 py-4 text-center text-xs text-muted-foreground">Belum ada kategori tersedia.</p>
+                  )}
+                  {categories.map((category) => (
+                    <label
+                      key={category.id}
+                      className="flex cursor-pointer items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-card"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={form.categoryIds.includes(category.id)}
+                        onChange={() => toggleCategoryAccess(category.id)}
+                        className="mt-1 h-4 w-4 rounded border-border accent-primary"
+                      />
+                      <span className="min-w-0">
+                        <span className="block text-sm font-semibold text-foreground leading-snug">{category.title}</span>
+                        {category.description && (
+                          <span className="block text-[11px] text-muted-foreground">{category.description}</span>
+                        )}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-[11px] text-muted-foreground">
+                  User hanya bisa melihat kategori yang dicentang di sini. Isi dokumennya tetap mengikuti status aktif/tidak aktif dari admin.
+                </p>
+              </div>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="px-6 py-4 border-t border-border bg-muted/30 gap-2">
             <Button variant="outline" onClick={() => setFormOpen(false)} disabled={saving}>Batal</Button>
             <Button onClick={handleSave} disabled={saving}>
               {saving && <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />}

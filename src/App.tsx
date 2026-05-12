@@ -19,6 +19,7 @@ import Admin from "./pages/Admin";
 import AdminDokumen from "./pages/AdminDokumen";
 import AdminBerita from "./pages/AdminBerita";
 import AdminAkun from "./pages/AdminAkun";
+import AdminBeranda from "./pages/AdminBeranda";
 import AdminSejarah from "./pages/AdminSejarah";
 import AdminVisiMisi from "./pages/AdminVisiMisi";
 import AdminRoadMap from "./pages/AdminRoadMap";
@@ -86,6 +87,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/admin/beranda" element={<ProtectedRoute allowedRole="admin"><AdminBeranda /></ProtectedRoute>} />
             <Route path="/admin/sejarah" element={<ProtectedRoute allowedRole="admin"><AdminSejarah /></ProtectedRoute>} />
             <Route path="/admin/visi-misi" element={<ProtectedRoute allowedRole="admin"><AdminVisiMisi /></ProtectedRoute>} />
             <Route path="/admin/road-map" element={<ProtectedRoute allowedRole="admin"><AdminRoadMap /></ProtectedRoute>} />

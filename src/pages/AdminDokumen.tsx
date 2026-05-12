@@ -396,7 +396,7 @@ function CoversGrid({
   covers, data, onOpen, onEdit, onDelete,
 }: {
   covers: Cover[];
-  data: { documents: DocumentItem[] } & any;
+  data: { documents: DocumentItem[] };
   onOpen: (id: string) => void;
   onEdit: (c: Cover) => void;
   onDelete: (id: string) => void;
@@ -775,15 +775,15 @@ function CoverDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="rounded-2xl max-w-lg p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+      <DialogContent className="rounded-2xl max-w-lg max-h-[92vh] overflow-hidden p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-card">
           <DialogTitle className="text-xl font-black">{editing ? "Edit Kategori" : "Tambah Kategori"}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Kategori berfungsi sebagai pembatas / pengelompok dokumen.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[calc(92vh-11.5rem)]">
           {/* Image upload */}
           <div className="space-y-1.5">
             <Label className="text-[13px] font-semibold text-foreground/80">Gambar Kategori (opsional)</Label>
@@ -1026,8 +1026,8 @@ function RevisionDialog({
 
   return (
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
-      <DialogContent className="rounded-2xl max-w-lg p-0 gap-0">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
+      <DialogContent className="rounded-2xl max-w-lg max-h-[92vh] overflow-hidden p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-card">
           <DialogTitle className="text-xl font-black flex items-center gap-2">
             <GitBranch className="w-5 h-5 text-blue-500" />Tambah Revisi
           </DialogTitle>
@@ -1036,7 +1036,7 @@ function RevisionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="px-6 py-5 space-y-4">
+        <div className="px-6 py-5 space-y-4 overflow-y-auto max-h-[calc(92vh-11.5rem)]">
           <div className="flex items-start gap-3 p-3.5 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800/50 rounded-xl">
             <GitBranch className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
             <p className="text-[12px] text-blue-700 dark:text-blue-300 leading-relaxed">

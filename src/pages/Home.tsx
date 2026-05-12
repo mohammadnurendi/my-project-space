@@ -1,4 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
+import type { ElementType } from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowRight,
@@ -20,6 +21,9 @@ import ParallaxBg from "@/components/ParallaxBg";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { dokumenApi, kategoriApi, type ApiDokumen, type ApiKategori } from "@/services/dokumenApi";
+import { beritaApi, type ApiBerita } from "@/services/beritaApi";
+import { profilApi } from "@/services/profilApi";
+import { BERANDA_DEFAULT, type BerandaData, type HomeContactType } from "@/data/berandaContent";
 import heroBg from "@/assets/Gambar1.jpg";
 
 const docIcons = [FileText, Files, ClipboardList, BookOpen];
@@ -53,57 +57,33 @@ const features = [
   },
 ];
 
-const stats = [
-  { value: "20+", label: "Tahun Pengalaman" },
-  { value: "100+", label: "Dokumen Standar" },
-  { value: "27+", label: "Auditor Internal" },
-  { value: "20", label: "Lab & Studio" },
-];
-
-const faqs: FaqItem[] = [
-  {
-    question: "Apa itu Lembaga Penjamin Mutu?",
-    answer:
-      "Lembaga penjamin mutu (LPM) di perguruan tinggi adalah salah satu elemen yang penting dalam sistem pendidikan tinggi. LPM berfungsi untuk memastikan bahwa proses pendidikan yang diberikan oleh perguruan tinggi memiliki kualitas yang terjaga dan memenuhi standar yang telah ditetapkan oleh otoritas pendidikan nasional maupun kebutuhan masyarakat.",
-  },
-  {
-    question: "Hotline Lembaga Penjamin Mutu?",
-    answer:
-      "Lembaga Penjamin Mutu adalah memiliki hotline di platform Whatsapp. Dapat diakses melalui: +62-227-2722-15",
-  },
-  {
-    question: "Apa saja tugas dan wewenang LPM?",
-    answer:
-      "LPM bertugas merencanakan, melaksanakan, mengevaluasi, mengendalikan, dan mengembangkan SPMI; menyusun dokumen SPMI; membentuk unit penjaminan mutu; serta mengelola Pangkalan Data Pendidikan Tinggi (PD Dikti) pada tingkat perguruan tinggi.",
-  },
-  {
-    question: "Bagaimana cara mengakses dokumen LPM?",
-    answer:
-      "Dokumen LPM dapat diakses melalui menu Dokumen di website ini. Tersedia berbagai jenis dokumen seperti Dokumen Manual, Formulir, Dokumen Standar, Dokumen Kebijakan, dan lainnya.",
-  },
-];
-
-const locationInfo = [
-  { Icon: MapPin, label: "Alamat", value: "Jl. PH.H. Mustofa No.23 Bandung, 40124" },
-  { Icon: Phone, label: "Telepon", value: "+62-227-2722-15" },
-  { Icon: Mail, label: "Email", value: "lpm@itenas.ac.id" },
-];
+const contactIcons: Record<HomeContactType, ElementType> = {
+  address: MapPin,
+  phone: Phone,
+  email: Mail,
+};
 
 const Home = () => {
   const { isAuthenticated, userRole } = useAuth();
   const navigate = useNavigate();
   const [categories, setCategories] = useState<ApiKategori[]>([]);
   const [documents, setDocuments] = useState<ApiDokumen[]>([]);
+  const [beritaList, setBeritaList] = useState<ApiBerita[]>([]);
+  const [beranda, setBeranda] = useState<BerandaData>(BERANDA_DEFAULT);
 
   useEffect(() => {
-    Promise.all([kategoriApi.list(), dokumenApi.list()])
-      .then(([kategoriData, dokumenData]) => {
+    Promise.all([kategoriApi.list(), dokumenApi.list(), beritaApi.list(), profilApi.beranda.get()])
+      .then(([kategoriData, dokumenData, beritaData, berandaData]) => {
         setCategories(kategoriData);
         setDocuments(dokumenData);
+        setBeritaList(beritaData);
+        setBeranda({ ...BERANDA_DEFAULT, ...berandaData });
       })
       .catch(() => {
         setCategories([]);
         setDocuments([]);
+        setBeritaList([]);
+        setBeranda(BERANDA_DEFAULT);
       });
   }, []);
 
@@ -189,11 +169,11 @@ const Home = () => {
             <div className="lg:col-span-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
               <div className="bg-background/5 backdrop-blur-sm border border-background/10 rounded-3xl p-6 sm:p-7">
                 <p className="text-[10px] uppercase tracking-[0.25em] text-primary font-bold mb-5">
-                  Pencapaian Kami
+                  {beranda.statsTitle}
                 </p>
                 <div className="grid grid-cols-2 gap-5">
-                  {stats.map((s) => (
-                    <div key={s.label}>
+                  {beranda.stats.map((s) => (
+                    <div key={s.id}>
                       <p className="text-3xl sm:text-4xl font-black text-background">{s.value}</p>
                       <p className="text-[11px] text-background/60 mt-1 font-medium leading-tight">
                         {s.label}
@@ -322,20 +302,97 @@ const Home = () => {
         </div>
       </section>
 
+      {/* Berita Terbaru */}
+      {beritaList.length > 0 && (
+        <section className="py-16 sm:py-20 bg-background">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between mb-10 sm:mb-12 animate-fade-up">
+              <div className="text-center w-full">
+                <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+                  Berita
+                </span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">
+                  Berita <span className="text-primary">Terkini</span>
+                </h2>
+                <p className="text-muted-foreground mt-3 max-w-md mx-auto text-sm sm:text-base">
+                  Ikuti perkembangan terbaru kegiatan LPM Itenas
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {beritaList.slice(0, 3).map((b) => {
+                const image = b.gambar_urls?.[0] ?? b.gambar_url;
+                const formattedDate = new Date(b.tanggal).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+                return (
+                  <Link
+                    key={b.id}
+                    to={`/berita/${b.id}`}
+                    className="group bg-card border border-border rounded-3xl overflow-hidden hover:shadow-xl hover:shadow-foreground/5 hover:-translate-y-1 transition-all duration-300 flex flex-col"
+                  >
+                    <div className="relative overflow-hidden aspect-[16/9]">
+                      {image ? (
+                        <img src={image} alt={b.judul} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <FileText className="w-8 h-8 text-muted-foreground/40" />
+                        </div>
+                      )}
+                      {b.featured && (
+                        <div className="absolute top-3 left-3 bg-primary text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                          Unggulan
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5 flex flex-col flex-1">
+                      <p className="text-[11px] text-muted-foreground mb-2">{formattedDate}</p>
+                      <h3 className="font-bold text-foreground text-[15px] leading-snug mb-2 line-clamp-2 group-hover:text-primary transition-colors">
+                        {b.judul}
+                      </h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 flex-1">
+                        {b.ringkasan}
+                      </p>
+                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                        <span className="text-[12px] text-muted-foreground font-medium">{b.penulis}</span>
+                        <span className="flex items-center gap-1 text-primary text-[12px] font-bold group-hover:gap-2 transition-all">
+                          Baca <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {beritaList.length > 3 && (
+              <div className="mt-8 flex justify-center">
+                <Link
+                  to="/berita"
+                  className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary-dark hover:shadow-primary/35 active:scale-95"
+                >
+                  Lihat Semua Berita
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* FAQ */}
       <section className="py-16 sm:py-20 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-12 animate-fade-up">
             <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              F.A.Q
+              {beranda.faqEyebrow}
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">
-              Pertanyaan Yang Sering Diajukan <span className="text-primary">LPM ITENAS</span>
+              {beranda.faqTitle}
             </h2>
           </div>
 
           <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden animate-fade-up">
-            <FaqAccordion items={faqs} />
+            <FaqAccordion items={beranda.faqs as FaqItem[]} />
           </div>
         </div>
       </section>
@@ -345,9 +402,9 @@ const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-12 animate-fade-up">
             <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              Lokasi
+              {beranda.locationEyebrow}
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">Lokasi Kami</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">{beranda.locationTitle}</h2>
           </div>
 
           <a
@@ -374,11 +431,11 @@ const Home = () => {
           </a>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {locationInfo.map((info, i) => {
-              const { Icon } = info;
+            {beranda.contactCards.map((info, i) => {
+              const Icon = contactIcons[info.type] ?? MapPin;
               return (
                 <div
-                  key={info.label}
+                  key={info.id}
                   className="flex items-start gap-3 bg-card border border-border rounded-2xl p-4 sm:p-5 hover:border-primary/30 hover:shadow-md transition-all duration-300 animate-fade-up"
                   style={{ animationDelay: `${i * 80}ms` }}
                 >

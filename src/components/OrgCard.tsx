@@ -10,16 +10,16 @@ const OrgCard = ({ name, role, isHead = false }: OrgCardProps) => {
   return (
     <div
       className={cn(
-        "rounded-2xl px-5 py-4 text-center shadow-sm border transition-all duration-300 hover:shadow-md min-w-[180px] max-w-[260px]",
+        "rounded-xl px-5 py-4 text-center border min-w-[180px] max-w-[260px]",
         isHead
-          ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20"
-          : "bg-card text-foreground border-border hover:border-primary/30"
+          ? "bg-foreground text-background border-foreground"
+          : "bg-card text-foreground border-border"
       )}
     >
       <h4
         className={cn(
           "font-bold text-sm leading-tight whitespace-pre-line",
-          isHead ? "text-primary-foreground" : "text-foreground"
+          isHead ? "text-background" : "text-foreground"
         )}
       >
         {name}
@@ -27,7 +27,7 @@ const OrgCard = ({ name, role, isHead = false }: OrgCardProps) => {
       <p
         className={cn(
           "text-xs mt-1.5 leading-snug",
-          isHead ? "text-primary-foreground/80" : "text-muted-foreground"
+          isHead ? "text-background/70" : "text-muted-foreground"
         )}
       >
         {role}

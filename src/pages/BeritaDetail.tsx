@@ -1,9 +1,9 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import {
-  ArrowLeft, Calendar, Clock, User, Tag,
+  ArrowLeft, Calendar, User, Tag,
   ChevronRight, Newspaper, TrendingUp, BookOpen, Megaphone,
-  Eye, Loader2,
+  Loader2,
 } from "lucide-react";
 import { beritaApi, type ApiBerita } from "@/services/beritaApi";
 
@@ -11,7 +11,7 @@ import { beritaApi, type ApiBerita } from "@/services/beritaApi";
 type BeritaItem = {
   id: string; judul: string; kategori: string; ringkasan: string;
   isi: string; penulis: string; tanggal: string; gambar: string;
-  gambarUrls: string[]; featured: boolean; tags: string[];
+  gambarUrls: string[]; gambarLainUrls: string[]; featured: boolean; tags: string[];
 };
 
 function toItem(b: ApiBerita): BeritaItem {
@@ -20,6 +20,7 @@ function toItem(b: ApiBerita): BeritaItem {
     ringkasan: b.ringkasan, isi: b.isi, penulis: b.penulis,
     tanggal: b.tanggal, gambar: b.gambar_url ?? "",
     gambarUrls: b.gambar_urls ?? (b.gambar_url ? [b.gambar_url] : []),
+    gambarLainUrls: b.gambar_lain_urls ?? b.gambar_urls?.slice(1) ?? [],
     featured: b.featured, tags: b.tags ?? [],
   };
 }
@@ -33,13 +34,7 @@ const estimasiWaktuBaca = (isi: string) => {
   return Math.max(1, Math.round(words / 200));
 };
 
-const kategoriColor = (k: string) =>
-  ({
-    Audit: "bg-amber-100 text-amber-700 ring-1 ring-amber-200",
-    Kegiatan: "bg-blue-100 text-blue-700 ring-1 ring-blue-200",
-    Prestasi: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200",
-    Pengumuman: "bg-violet-100 text-violet-700 ring-1 ring-violet-200",
-  } as Record<string, string>)[k] ?? "bg-muted text-muted-foreground";
+const kategoriColor = "bg-primary/10 text-primary ring-1 ring-primary/20";
 
 const kategoriIcon = (k: string) =>
   ({
@@ -49,9 +44,41 @@ const kategoriIcon = (k: string) =>
     Pengumuman: Megaphone,
   } as Record<string, React.ElementType>)[k] ?? Newspaper;
 
-/* ─── Render isi dengan bold/heading sederhana ─────────────── */
-function RenderIsi({ isi }: { isi: string }) {
-  const blocks = isi.trim().split(/\n\n+/);
+/* ─── Render isi dengan markdown sederhana ─────────────── */
+function ArticleImage({ src, index, variant }: { src: string; index: number; variant: "wide" | "cinema" | "portrait" }) {
+  const ratioClass = {
+    wide: "aspect-[16/9]",
+    cinema: "aspect-[21/9]",
+    portrait: "aspect-[16/10]",
+  }[variant];
+
+  return (
+    <figure className="my-8 w-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      <img
+        src={src}
+        alt={`Foto isi berita ${index + 1}`}
+        className={`w-full ${ratioClass} object-cover`}
+      />
+    </figure>
+  );
+}
+
+function RenderIsi({ isi, images = [] }: { isi: string; images?: string[] }) {
+  // Normalize: pastikan heading dan blockquote selalu mulai di blok baru
+  const normalized = isi
+    .replace(/\r\n/g, "\n")
+    .replace(/([^\n])\n(#{1,3} )/g, "$1\n\n$2")
+    .replace(/([^\n])\n(> )/g, "$1\n\n$2");
+
+  const blocks = normalized.trim().split(/\n\n+/);
+  const imageVariants: Array<"wide" | "cinema" | "portrait"> = ["wide", "cinema", "portrait"];
+  const imageSlots = new Map<number, { src: string; variant: "wide" | "cinema" | "portrait"; index: number }>();
+
+  images.slice(0, 3).forEach((src, imageIndex) => {
+    if (!blocks.length) return;
+    const slot = Math.min(blocks.length - 1, Math.max(0, Math.floor(((imageIndex + 1) * blocks.length) / 4)));
+    imageSlots.set(slot, { src, variant: imageVariants[imageIndex], index: imageIndex });
+  });
 
   const renderInline = (text: string) => {
     const parts = text.split(/(\*\*.+?\*\*|\*.+?\*)/g);
@@ -66,35 +93,43 @@ function RenderIsi({ isi }: { isi: string }) {
     });
   };
 
-  return (
-    <div className="space-y-5 text-[15px] text-foreground/80 leading-relaxed">
-      {blocks.map((block, index) => {
-        if (block.startsWith("### ")) {
+  const renderBlock = (block: string, index: number) => {
+        const trimmed = block.trim();
+
+        if (trimmed.startsWith("### ")) {
           return (
             <h3 key={index} className="text-lg font-black text-foreground mt-8 mb-2 first:mt-0 border-l-4 border-primary pl-4">
-              {renderInline(block.replace(/^###\s+/, ""))}
+              {renderInline(trimmed.replace(/^###\s+/, ""))}
             </h3>
           );
         }
 
-        if (block.startsWith("## ")) {
+        if (trimmed.startsWith("## ")) {
           return (
             <h2 key={index} className="text-xl md:text-2xl font-black text-foreground mt-9 mb-3 first:mt-0">
-              {renderInline(block.replace(/^##\s+/, ""))}
+              {renderInline(trimmed.replace(/^##\s+/, ""))}
             </h2>
           );
         }
 
-        if (block.startsWith("> ")) {
+        if (trimmed.startsWith("# ")) {
           return (
-            <blockquote key={index} className="border-l-4 border-primary bg-primary/5 rounded-r-2xl px-5 py-4 font-medium text-foreground/90">
-              {renderInline(block.replace(/^>\s+/, ""))}
+            <h1 key={index} className="text-2xl font-black text-foreground mt-9 mb-3 first:mt-0">
+              {renderInline(trimmed.replace(/^#\s+/, ""))}
+            </h1>
+          );
+        }
+
+        if (trimmed.startsWith("> ")) {
+          return (
+            <blockquote key={index} className="border-l-4 border-primary bg-primary/5 rounded-r-2xl px-5 py-4 font-medium text-foreground/90 italic">
+              {renderInline(trimmed.replace(/^>\s+/, ""))}
             </blockquote>
           );
         }
 
-        const lines = block.split("\n");
-        const isList = lines.every((line) => /^[-*]\s+/.test(line.trim()));
+        const lines = trimmed.split("\n");
+        const isList = lines.length > 0 && lines.every((line) => /^[-*]\s+/.test(line.trim()));
         if (isList) {
           return (
             <ul key={index} className="space-y-2 pl-5 list-disc marker:text-primary">
@@ -105,7 +140,32 @@ function RenderIsi({ isi }: { isi: string }) {
           );
         }
 
-        return <p key={index}>{renderInline(block)}</p>;
+        // Paragraph biasa — pisahkan per baris jika ada newline tunggal
+        const paragraphLines = trimmed.split("\n");
+        if (paragraphLines.length > 1) {
+          return (
+            <p key={index}>
+              {paragraphLines.map((line, li) => (
+                <span key={li}>{renderInline(line)}{li < paragraphLines.length - 1 && <br />}</span>
+              ))}
+            </p>
+          );
+        }
+
+        return <p key={index}>{renderInline(trimmed)}</p>;
+  };
+
+  return (
+    <div className="space-y-5 text-[15px] text-foreground/80 leading-relaxed">
+      {blocks.map((block, index) => {
+        const image = imageSlots.get(index);
+
+        return (
+          <div key={index} className="contents">
+            {renderBlock(block, index)}
+            {image && <ArticleImage src={image.src} variant={image.variant} index={image.index} />}
+          </div>
+        );
       })}
     </div>
   );
@@ -126,7 +186,7 @@ function RelatedCard({ berita }: { berita: BeritaItem }) {
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 ${kategoriColor(berita.kategori)}`}>
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1.5 ${kategoriColor}`}>
           <KatIcon className="w-2.5 h-2.5" />{berita.kategori}
         </span>
         <p className="text-[13px] font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
@@ -200,8 +260,8 @@ const BeritaDetail = () => {
 
   const waktuBaca = estimasiWaktuBaca(berita.isi);
   const KatIcon = kategoriIcon(berita.kategori);
-  const images = berita.gambarUrls.length ? berita.gambarUrls : (berita.gambar ? [berita.gambar] : []);
-  const heroImage = images[0];
+  const heroImage = berita.gambar || berita.gambarUrls[0];
+  const contentImages = berita.gambarLainUrls;
 
   return (
     <div className="min-h-screen bg-surface">
@@ -233,7 +293,7 @@ const BeritaDetail = () => {
         {/* Judul */}
         <div className="absolute bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 pb-8 md:pb-12">
           <div className="max-w-5xl mx-auto">
-            <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full mb-4 ${kategoriColor(berita.kategori)}`}>
+            <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold px-3 py-1.5 rounded-full mb-4 ${kategoriColor}`}>
               <KatIcon className="w-3 h-3" />{berita.kategori}
             </span>
             <h1 className="text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight max-w-3xl">
@@ -260,14 +320,6 @@ const BeritaDetail = () => {
                 <Calendar className="w-4 h-4 text-primary" />
                 {formatTanggal(berita.tanggal)}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-4 h-4 text-primary" />
-                {waktuBaca} menit baca
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Eye className="w-4 h-4 text-primary" />
-                1.2K views
-              </span>
             </div>
 
             {/* Ringkasan / lead */}
@@ -277,18 +329,8 @@ const BeritaDetail = () => {
               </p>
             </div>
 
-            {images.length > 1 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                {images.slice(1).map((image, index) => (
-                  <figure key={image} className="rounded-2xl overflow-hidden border border-border bg-card">
-                    <img src={image} alt={`${berita.judul} ${index + 2}`} className="w-full aspect-[16/10] object-cover" />
-                  </figure>
-                ))}
-              </div>
-            )}
-
             {/* Isi artikel */}
-            <RenderIsi isi={berita.isi} />
+            <RenderIsi isi={berita.isi} images={contentImages} />
 
             {/* Tags */}
             {berita.tags.length > 0 && (

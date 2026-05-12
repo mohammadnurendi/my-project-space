@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { kategoriApi, type ApiKategori } from "@/services/dokumenApi";
-import logoLpm from "@/assets/logo-lpm.png";
+import logoLpm from "@/assets/logolpmputih.png";
 
 const navLinks = [
   { label: "Beranda", path: "/" },
@@ -26,7 +26,7 @@ const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 pb-12 border-b border-background/10">
           <div>
-            <div className="mb-4 bg-background/95 rounded-xl p-3 inline-block">
+            <div className="mb-4 inline-block">
               <img src={logoLpm} alt="LPM Itenas" className="h-10 w-auto" />
             </div>
             <p className="text-sm text-background/60 leading-relaxed">

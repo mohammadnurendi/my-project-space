@@ -1,7 +1,6 @@
 import HeroSection from "@/components/HeroSection";
 import Timeline, { TimelineItem } from "@/components/Timeline";
-import { ChevronRight, Ruler, Settings, BarChart3, Search, CheckCircle2, TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Ruler, Settings, BarChart3, Search, CheckCircle2, TrendingUp } from "lucide-react";
 import { useRoadMapStore } from "@/data/profilStore";
 import heroBg from "@/assets/Gambar4.jpg";
 
@@ -26,50 +25,40 @@ const RoadMap = () => {
         bgImage={heroBg}
       />
 
-      <section className="py-20 bg-background">
+      <section className="py-16 bg-background">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-14 animate-fade-up">
-            <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+          <div className="mb-10">
+            <span className="block text-primary text-xs font-bold uppercase tracking-[0.22em] mb-3">
               Road Map
             </span>
-            <h2 className="text-3xl font-black text-foreground">
-              Road Map <span className="text-primary">LPM Itenas</span>
+            <h2 className="text-2xl sm:text-3xl font-black text-foreground">
+              Road Map LPM Itenas
             </h2>
           </div>
 
-          <div className="animate-fade-up" style={{ animationDelay: "100ms" }}>
+          <div>
             <Timeline items={roadmapItems} />
           </div>
 
-          <div className="mt-20 animate-fade-up" style={{ animationDelay: "200ms" }}>
-            <div className="text-center mb-10">
+          <div className="mt-16">
+            <div className="mb-8">
               <h3 className="text-2xl font-black text-foreground">
-                Siklus <span className="text-primary">PPEPP</span>
+                Siklus PPEPP
               </h3>
               <p className="text-muted-foreground mt-2 text-sm">
                 Mekanisme pelaksanaan dan pengendalian penjaminan mutu
               </p>
             </div>
 
-            <div className="relative flex flex-wrap justify-center items-center gap-2 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {data.ppepp.map((label, i) => {
                 const Icon = ICONS[label] ?? CheckCircle2;
                 return (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="relative group">
-                      <div className={cn(
-                        "w-24 h-24 sm:w-28 sm:h-28 rounded-2xl flex flex-col items-center justify-center text-center p-2 cursor-default transition-all duration-300 hover:scale-110 hover:shadow-xl",
-                        i % 2 === 0
-                          ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                          : "bg-card border-2 border-primary text-primary"
-                      )}>
-                        <Icon className="w-6 h-6 mb-1" />
-                        <span className="text-xs font-bold leading-tight">{label}</span>
-                      </div>
+                  <div key={i} className="rounded-xl border border-border bg-card p-5">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center mb-4">
+                      <Icon className="w-5 h-5" />
                     </div>
-                    {i < data.ppepp.length - 1 && (
-                      <ChevronRight className="w-4 h-4 text-primary flex-shrink-0 hidden sm:block" />
-                    )}
+                    <span className="text-sm font-bold leading-tight text-foreground">{label}</span>
                   </div>
                 );
               })}

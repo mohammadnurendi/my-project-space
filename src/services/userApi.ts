@@ -5,6 +5,7 @@ export type ApiAccount = {
   name: string;
   email: string;
   role: "admin" | "user";
+  category_ids: number[];
   created_at?: string;
   updated_at?: string;
 };
@@ -14,6 +15,7 @@ export type AccountInput = {
   email: string;
   role: "admin" | "user";
   password?: string;
+  category_ids?: number[];
 };
 
 export const userApi = {

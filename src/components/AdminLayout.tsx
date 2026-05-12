@@ -15,6 +15,7 @@ interface AdminLayoutProps {
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: Home, end: true },
+  { to: "/admin/beranda", label: "Beranda", icon: Home },
   { to: "/admin/dokumen", label: "Dokumen", icon: BookOpen },
   { to: "/admin/berita", label: "Berita", icon: Newspaper },
   { to: "/admin/sejarah", label: "Sejarah", icon: History },
@@ -73,14 +74,6 @@ const AdminLayout = ({ title, children, headerRight }: AdminLayoutProps) => {
 
           {/* User */}
           <div className="flex items-center gap-3 ml-auto">
-            <Link
-              to="/"
-              className="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-primary transition-colors px-3 py-2 rounded-lg hover:bg-muted"
-              title="Ke halaman utama"
-            >
-              <Home className="w-4 h-4" />
-              Halaman Utama
-            </Link>
             <div className="text-right hidden sm:block">
               <p className="text-sm font-bold text-foreground capitalize leading-tight">
                 {displayName}
@@ -108,11 +101,12 @@ const AdminLayout = ({ title, children, headerRight }: AdminLayoutProps) => {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed lg:sticky top-16 md:top-20 left-0 z-30 h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] w-64 bg-card border-r border-border transition-transform duration-300 lg:translate-x-0",
+            "fixed lg:sticky top-16 md:top-20 left-0 z-30 h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] w-64 bg-card border-r border-border transition-transform duration-300 lg:translate-x-0 flex flex-col",
             mobileOpen ? "translate-x-0" : "-translate-x-full",
           )}
         >
-          <nav className="p-4 space-y-1.5">
+        <nav className="p-4 space-y-1.5 flex flex-col h-full">
+            <div className="flex-1 space-y-1.5">
             {navItems.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
@@ -151,7 +145,19 @@ const AdminLayout = ({ title, children, headerRight }: AdminLayoutProps) => {
               <LogOut className="w-5 h-5" />
               Keluar
             </button>
-          </nav>
+            </div>
+
+            {/* Bottom: Halaman Utama (desktop) */}
+            <div className="hidden md:block border-t border-border pt-3 mt-3 space-y-1">
+              <Link
+                to="/"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-muted-foreground hover:bg-muted hover:text-foreground transition-all"
+              >
+                <Home className="w-5 h-5 shrink-0" />
+                <span>Halaman Utama</span>
+              </Link>
+            </div>
+        </nav>
         </aside>
 
         {/* Backdrop mobile */}

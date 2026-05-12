@@ -54,9 +54,9 @@ export type ApiError = {
 
 api.interceptors.response.use(
   (res) => res,
-  (error: AxiosError<any>) => {
+  (error: AxiosError<unknown>) => {
     const status = error.response?.status ?? 0;
-    const data = error.response?.data;
+    const data = error.response?.data as { message?: string; error?: string; errors?: Record<string, string[]> } | undefined;
     const apiError: ApiError = {
       status,
       message:
@@ -121,9 +121,9 @@ export async function postWithMethod<T = unknown>(
 }
 
 /** Ambil isi `data` standar Laravel (`{ data: ... }`) bila ada. */
-export function unwrap<T>(payload: any): T {
+export function unwrap<T>(payload: unknown): T {
   if (payload && typeof payload === "object" && "data" in payload) {
-    return payload.data as T;
+    return (payload as { data: T }).data;
   }
   return payload as T;
 }
