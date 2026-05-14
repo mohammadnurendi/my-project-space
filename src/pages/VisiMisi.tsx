@@ -1,10 +1,19 @@
 import HeroSection from "@/components/HeroSection";
 import { Eye, ClipboardList, Check, BarChart3 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useVisiMisiStore } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 import heroBg from "@/assets/Gambar3.jpg";
 
 const VisiMisi = () => {
-  const { data } = useVisiMisiStore();
+  const { data: fallbackData } = useVisiMisiStore();
+  const [data, setData] = useState(fallbackData);
+
+  useEffect(() => {
+    profilApi.visiMisi.get()
+      .then(setData)
+      .catch(() => setData(fallbackData));
+  }, [fallbackData]);
 
   return (
     <div>

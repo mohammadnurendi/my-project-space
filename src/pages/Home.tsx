@@ -69,20 +69,26 @@ const Home = () => {
   const [categories, setCategories] = useState<ApiKategori[]>([]);
   const [documents, setDocuments] = useState<ApiDokumen[]>([]);
   const [beritaList, setBeritaList] = useState<ApiBerita[]>([]);
-  const [beranda, setBeranda] = useState<BerandaData>(BERANDA_DEFAULT);
+  const [beranda, setBeranda] = useState<BerandaData | null>(null);
 
   useEffect(() => {
-    Promise.all([kategoriApi.list(), dokumenApi.list(), beritaApi.list(), profilApi.beranda.get()])
-      .then(([kategoriData, dokumenData, beritaData, berandaData]) => {
+    Promise.all([kategoriApi.list(), dokumenApi.list(), beritaApi.list()])
+      .then(([kategoriData, dokumenData, beritaData]) => {
         setCategories(kategoriData);
         setDocuments(dokumenData);
         setBeritaList(beritaData);
-        setBeranda({ ...BERANDA_DEFAULT, ...berandaData });
       })
       .catch(() => {
         setCategories([]);
         setDocuments([]);
         setBeritaList([]);
+      });
+
+    profilApi.beranda.get()
+      .then((berandaData) => {
+        setBeranda({ ...BERANDA_DEFAULT, ...berandaData });
+      })
+      .catch(() => {
         setBeranda(BERANDA_DEFAULT);
       });
   }, []);
@@ -168,19 +174,35 @@ const Home = () => {
             {/* Stats card on the side (desktop) / stacked (mobile) */}
             <div className="lg:col-span-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
               <div className="bg-background/5 backdrop-blur-sm border border-background/10 rounded-3xl p-6 sm:p-7">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-primary font-bold mb-5">
-                  {beranda.statsTitle}
-                </p>
-                <div className="grid grid-cols-2 gap-5">
-                  {beranda.stats.map((s) => (
-                    <div key={s.id}>
-                      <p className="text-3xl sm:text-4xl font-black text-background">{s.value}</p>
-                      <p className="text-[11px] text-background/60 mt-1 font-medium leading-tight">
-                        {s.label}
-                      </p>
+                {beranda ? (
+                  <>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-primary font-bold mb-5">
+                      {beranda.statsTitle}
+                    </p>
+                    <div className="grid grid-cols-2 gap-5">
+                      {beranda.stats.map((s) => (
+                        <div key={s.id}>
+                          <p className="text-3xl sm:text-4xl font-black text-background">{s.value}</p>
+                          <p className="text-[11px] text-background/60 mt-1 font-medium leading-tight">
+                            {s.label}
+                          </p>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="mb-5 h-3 w-36 rounded-full bg-background/10" />
+                    <div className="grid grid-cols-2 gap-5">
+                      {Array.from({ length: 4 }).map((_, index) => (
+                        <div key={index}>
+                          <div className="h-9 w-16 rounded-lg bg-background/10" />
+                          <div className="mt-2 h-3 w-20 rounded-full bg-background/10" />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -383,16 +405,35 @@ const Home = () => {
       <section className="py-16 sm:py-20 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-12 animate-fade-up">
-            <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              {beranda.faqEyebrow}
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">
-              {beranda.faqTitle}
-            </h2>
+            {beranda ? (
+              <>
+                <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+                  {beranda.faqEyebrow}
+                </span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">
+                  {beranda.faqTitle}
+                </h2>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto mb-4 h-6 w-20 rounded-full bg-muted" />
+                <div className="mx-auto h-10 w-full max-w-xl rounded-xl bg-muted" />
+              </>
+            )}
           </div>
 
           <div className="bg-card rounded-3xl shadow-sm border border-border overflow-hidden animate-fade-up">
-            <FaqAccordion items={beranda.faqs as FaqItem[]} />
+            {beranda ? (
+              <FaqAccordion items={beranda.faqs as FaqItem[]} />
+            ) : (
+              <div className="divide-y divide-border">
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="p-5">
+                    <div className="h-5 w-3/4 rounded-full bg-muted" />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -401,10 +442,19 @@ const Home = () => {
       <section className="py-16 sm:py-20 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-12 animate-fade-up">
-            <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              {beranda.locationEyebrow}
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">{beranda.locationTitle}</h2>
+            {beranda ? (
+              <>
+                <span className="inline-block bg-accent text-primary text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
+                  {beranda.locationEyebrow}
+                </span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground">{beranda.locationTitle}</h2>
+              </>
+            ) : (
+              <>
+                <div className="mx-auto mb-4 h-6 w-20 rounded-full bg-muted" />
+                <div className="mx-auto h-10 w-48 rounded-xl bg-muted" />
+              </>
+            )}
           </div>
 
           <a
@@ -431,7 +481,7 @@ const Home = () => {
           </a>
 
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {beranda.contactCards.map((info, i) => {
+            {beranda ? beranda.contactCards.map((info, i) => {
               const Icon = contactIcons[info.type] ?? MapPin;
               return (
                 <div
@@ -452,7 +502,19 @@ const Home = () => {
                   </div>
                 </div>
               );
-            })}
+            }) : Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex items-start gap-3 bg-card border border-border rounded-2xl p-4 sm:p-5 animate-fade-up"
+                style={{ animationDelay: `${i * 80}ms` }}
+              >
+                <div className="h-10 w-10 flex-shrink-0 rounded-xl bg-muted" />
+                <div className="min-w-0 flex-1">
+                  <div className="h-3 w-20 rounded-full bg-muted" />
+                  <div className="mt-2 h-4 w-full rounded-full bg-muted" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

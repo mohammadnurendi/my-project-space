@@ -1,10 +1,20 @@
 import HeroSection from "@/components/HeroSection";
 import { Scale } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useSejarahStore } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 import heroBg from "@/assets/Gambar2.jpg";
 
 const Sejarah = () => {
-  const { data } = useSejarahStore();
+  const { data: fallbackData } = useSejarahStore();
+  const [data, setData] = useState(fallbackData);
+
+  useEffect(() => {
+    profilApi.sejarah.get()
+      .then(setData)
+      .catch(() => setData(fallbackData));
+  }, [fallbackData]);
+
   const history = data.events;
 
   return (

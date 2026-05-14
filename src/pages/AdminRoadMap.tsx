@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useRoadMapStore, type RoadMapData, type RoadMapItem, newId } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 
 const AdminRoadMap = () => {
   const { data, update, reset } = useRoadMapStore();
@@ -15,6 +16,14 @@ const AdminRoadMap = () => {
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => { setDraft(data); }, [data]);
+  useEffect(() => {
+    profilApi.roadmap.get()
+      .then((value) => {
+        setDraft(value);
+        update(() => value);
+      })
+      .catch(() => undefined);
+  }, [update]);
 
   const patch = <K extends keyof RoadMapData>(k: K, v: RoadMapData[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -40,10 +49,16 @@ const AdminRoadMap = () => {
     patch("items", next);
   };
 
-  const handleSave = () => {
-    update(() => draft);
-    setDirty(false);
-    toast.success("Halaman Road Map berhasil diperbarui");
+  const handleSave = async () => {
+    try {
+      const saved = await profilApi.roadmap.save(draft);
+      update(() => saved);
+      setDraft(saved);
+      setDirty(false);
+      toast.success("Halaman Road Map berhasil diperbarui");
+    } catch {
+      toast.error("Gagal menyimpan halaman Road Map");
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useVisiMisiStore, type VisiMisiData } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 
 const AdminVisiMisi = () => {
   const { data, update, reset } = useVisiMisiStore();
@@ -14,6 +15,14 @@ const AdminVisiMisi = () => {
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => { setDraft(data); }, [data]);
+  useEffect(() => {
+    profilApi.visiMisi.get()
+      .then((value) => {
+        setDraft(value);
+        update(() => value);
+      })
+      .catch(() => undefined);
+  }, [update]);
 
   const patch = <K extends keyof VisiMisiData>(k: K, v: VisiMisiData[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -26,11 +35,17 @@ const AdminVisiMisi = () => {
     patch(key, next);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!draft.visi.trim()) { toast.error("Visi tidak boleh kosong"); return; }
-    update(() => draft);
-    setDirty(false);
-    toast.success("Halaman Visi & Misi berhasil diperbarui");
+    try {
+      const saved = await profilApi.visiMisi.save(draft);
+      update(() => saved);
+      setDraft(saved);
+      setDirty(false);
+      toast.success("Halaman Visi & Misi berhasil diperbarui");
+    } catch {
+      toast.error("Gagal menyimpan halaman Visi & Misi");
+    }
   };
 
   return (

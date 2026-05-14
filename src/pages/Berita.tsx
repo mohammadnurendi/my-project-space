@@ -153,6 +153,7 @@ const BERITA_AWAL = 3;
 const Berita = () => {
   const { list: seedBerita, loading } = useBeritaApi();
   const [query, setQuery] = useState("");
+  const [showAllOther, setShowAllOther] = useState(false);
   const { featured, nonFeatured } = useMemo(() => {
     const feat = seedBerita.filter((b) => b.featured).slice(0, FEATURED_LIMIT);
     const nonFeat = seedBerita.filter((b) => !b.featured);
@@ -171,7 +172,12 @@ const Berita = () => {
     );
   }, [query, nonFeatured]);
 
-  const beritaTampil = filteredNonFeatured.slice(0, BERITA_AWAL);
+  useEffect(() => {
+    setShowAllOther(false);
+  }, [query]);
+
+  const beritaTampil = showAllOther ? filteredNonFeatured : filteredNonFeatured.slice(0, BERITA_AWAL);
+  const hasMoreBerita = filteredNonFeatured.length > beritaTampil.length;
 
   return (
     <div className="min-h-screen bg-surface">
@@ -287,6 +293,18 @@ const Berita = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {beritaTampil.map((b) => <BeritaCard key={b.id} berita={b} />)}
               </div>
+              {hasMoreBerita && (
+                <div className="flex justify-center pt-8">
+                  <button
+                    type="button"
+                    onClick={() => setShowAllOther(true)}
+                    className="inline-flex items-center gap-2 rounded-full bg-primary px-7 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-dark hover:shadow-primary/30"
+                  >
+                    Lihat Selengkapnya
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
             </>
           )}
         </section>

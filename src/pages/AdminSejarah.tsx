@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { useSejarahStore, type SejarahData, type SejarahItem, newId } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 
 const AdminSejarah = () => {
   const { data, update, reset } = useSejarahStore();
@@ -14,6 +15,14 @@ const AdminSejarah = () => {
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => { setDraft(data); }, [data]);
+  useEffect(() => {
+    profilApi.sejarah.get()
+      .then((value) => {
+        setDraft(value);
+        update(() => value);
+      })
+      .catch(() => undefined);
+  }, [update]);
 
   const patch = <K extends keyof SejarahData>(k: K, v: SejarahData[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -46,14 +55,20 @@ const AdminSejarah = () => {
     patch("legalTasks", next);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (draft.events.some((e) => !e.year.trim() || !e.title.trim())) {
       toast.error("Tahun & judul setiap item Sejarah wajib diisi");
       return;
     }
-    update(() => draft);
-    setDirty(false);
-    toast.success("Halaman Sejarah berhasil diperbarui");
+    try {
+      const saved = await profilApi.sejarah.save(draft);
+      update(() => saved);
+      setDraft(saved);
+      setDirty(false);
+      toast.success("Halaman Sejarah berhasil diperbarui");
+    } catch {
+      toast.error("Gagal menyimpan halaman Sejarah");
+    }
   };
 
   const handleReset = () => {

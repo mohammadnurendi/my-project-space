@@ -1,7 +1,9 @@
 import HeroSection from "@/components/HeroSection";
 import Timeline, { TimelineItem } from "@/components/Timeline";
 import { Ruler, Settings, BarChart3, Search, CheckCircle2, TrendingUp } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useRoadMapStore } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 import heroBg from "@/assets/Gambar4.jpg";
 
 const ICONS: Record<string, React.ElementType> = {
@@ -10,7 +12,15 @@ const ICONS: Record<string, React.ElementType> = {
 };
 
 const RoadMap = () => {
-  const { data } = useRoadMapStore();
+  const { data: fallbackData } = useRoadMapStore();
+  const [data, setData] = useState(fallbackData);
+
+  useEffect(() => {
+    profilApi.roadmap.get()
+      .then(setData)
+      .catch(() => setData(fallbackData));
+  }, [fallbackData]);
+
   const roadmapItems: TimelineItem[] = data.items.map((it) => ({
     period: it.period, title: it.title, description: it.description, active: it.active,
   }));

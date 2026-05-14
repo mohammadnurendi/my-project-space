@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  useTimStore, fileToDataUrl,
+  useTimStore,
   type TimData, type TimMember, type TimLevel, newId,
 } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 
 const emptyMember = (): TimMember => ({ id: newId(), name: "", role: "" });
 const emptyLevel = (idx: number): TimLevel => ({
@@ -21,6 +22,11 @@ const emptyLevel = (idx: number): TimLevel => ({
   members: [emptyMember()],
 });
 
+const countTeamData = (data: TimData) =>
+  data.levels.reduce((sum, level) => sum + level.members.length, 0) +
+  data.pengelola.length +
+  data.auditor.length;
+
 /* ─────────────────────────────────────────────────────────── */
 
 const AdminTim = () => {
@@ -28,7 +34,23 @@ const AdminTim = () => {
   const [draft, setDraft] = useState<TimData>(data);
   const [dirty, setDirty] = useState(false);
 
-  useEffect(() => { setDraft(data); }, [data]);
+  useEffect(() => {
+    let mounted = true;
+    profilApi.tim.get()
+      .then((value) => {
+        if (!mounted) return;
+        if (countTeamData(data) > countTeamData(value)) {
+          setDraft(data);
+          return;
+        }
+        setDraft(value);
+        update(() => value);
+      })
+      .catch(() => undefined);
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const patch = <K extends keyof TimData>(k: K, v: TimData[K]) => {
     setDraft((d) => ({ ...d, [k]: v }));
@@ -51,10 +73,6 @@ const AdminTim = () => {
     patch("levels", [...draft.levels, emptyLevel(draft.levels.length + 1)]);
 
   const removeLevel = (id: string) => {
-    if (draft.levels.length <= 1) {
-      toast.error("Minimal harus ada 1 level");
-      return;
-    }
     patch("levels", draft.levels.filter((l) => l.id !== id));
   };
 
@@ -75,10 +93,6 @@ const AdminTim = () => {
   const removeMember = (levelId: string, memberId: string) => {
     const lvl = draft.levels.find((l) => l.id === levelId);
     if (!lvl) return;
-    if (lvl.members.length <= 1) {
-      toast.error("Minimal 1 anggota per level");
-      return;
-    }
     updateLevel(levelId, { members: lvl.members.filter((m) => m.id !== memberId) });
   };
 
@@ -107,7 +121,7 @@ const AdminTim = () => {
       return;
     }
     try {
-      const url = await fileToDataUrl(file);
+      const url = await profilApi.tim.uploadPhoto(file);
       updatePengelola(id, { photo: url });
       toast.success("Foto berhasil diunggah");
     } catch {
@@ -115,10 +129,16 @@ const AdminTim = () => {
     }
   };
 
-  const handleSave = () => {
-    update(() => draft);
-    setDirty(false);
-    toast.success("Halaman Tim berhasil diperbarui");
+  const handleSave = async () => {
+    try {
+      const saved = await profilApi.tim.save(draft);
+      update(() => saved);
+      setDraft(saved);
+      setDirty(false);
+      toast.success("Halaman Tim berhasil diperbarui");
+    } catch {
+      toast.error("Gagal menyimpan halaman Tim");
+    }
   };
 
   return (
@@ -367,12 +387,6 @@ function PengelolaCard({
       </Button>
       <Input value={member.name} onChange={(e) => onChange({ name: e.target.value })} placeholder="Nama" className="rounded-lg mb-2 text-[13px]" />
       <Input value={member.role} onChange={(e) => onChange({ role: e.target.value })} placeholder="Jabatan" className="rounded-lg mb-2 text-[13px]" />
-      <Input
-        value={member.photo?.startsWith("data:") ? "" : (member.photo ?? "")}
-        onChange={(e) => onChange({ photo: e.target.value || undefined })}
-        placeholder="Atau URL foto (opsional)"
-        className="rounded-lg text-[12px]"
-      />
       <Button
         variant="ghost" size="sm"
         className="w-full mt-2 text-destructive hover:text-destructive"

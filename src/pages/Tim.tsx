@@ -1,11 +1,28 @@
 import HeroSection from "@/components/HeroSection";
 import OrgCard from "@/components/OrgCard";
 import TeamCard from "@/components/TeamCard";
+import { useEffect, useState } from "react";
 import { useTimStore } from "@/data/profilStore";
+import { profilApi } from "@/services/profilApi";
 import heroBg from "@/assets/Gambar5.jpg";
 
+const countTeamData = (data: ReturnType<typeof useTimStore>["data"]) =>
+  data.levels.reduce((sum, level) => sum + level.members.length, 0) +
+  data.pengelola.length +
+  data.auditor.length;
+
 const Tim = () => {
-  const { data } = useTimStore();
+  const { data: fallbackData } = useTimStore();
+  const [data, setData] = useState(fallbackData);
+
+  useEffect(() => {
+    profilApi.tim.get()
+      .then((apiData) => {
+        setData(countTeamData(fallbackData) > countTeamData(apiData) ? fallbackData : apiData);
+      })
+      .catch(() => setData(fallbackData));
+  }, [fallbackData]);
+
   const [headLevel, ...subLevels] = data.levels;
 
   return (
